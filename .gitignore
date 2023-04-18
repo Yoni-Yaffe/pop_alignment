@@ -3,3 +3,5 @@
 *.mid
 *.out
 *.err
+*.pyc
+*.pyo

@@ -12,7 +12,8 @@ from onsets_and_frames import *
 from onsets_and_frames.dataset import EMDATASET
 from torch.nn import DataParallel
 from onsets_and_frames.transcriber import load_weights
-
+import time
+import shutil
 
 def set_diff(model, diff=True):
     for layer in model.children():
@@ -54,15 +55,20 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     os.makedirs(logdir, exist_ok=True)
     # train_data_path = '/disk4/ben/UnalignedSupervision/NoteEM_audio'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_labels'
-    train_data_path = 'G:\\pop_dataset\\NoteEm_audio'
-    labels_path = 'G:\\pop_dataset\\NoteEm_labels'
+    train_data_path = '/vol/scratch/jonathany/sanity_check/NoteEm_audio'
+    labels_path = '/vol/scratch/jonathany/sanity_check/NoteEm_labels'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
 
     os.makedirs(labels_path, exist_ok=True)
 
+    with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
+        fp.write(f"Parameters:\ndevice: {device}, iterations: {iterations}, checkpoint_interval: {checkpoint_interval},"
+                 f" batch_size: {batch_size}, sequence_length: {sequence_length}, learning_rate: {learning_rate}, "
+                 f"learning_rate_decay_steps: {learning_rate_decay_steps}, clip_gradient_norm: {clip_gradient_norm}, "
+                 f"epochs: {epochs}, transcriber_ckpt: {transcriber_ckpt}, multi_ckpt: {multi_ckpt}\n")
     # train_groups = ['Bach Brandenburg Concerto 1 A']
     # train_groups = ['MusicNetSamples', 'new_samples']
-    train_groups = ['pop_dataset']
+    train_groups = ['sanity_check']
 
     conversion_map = None
     instrument_map = None
@@ -137,12 +143,14 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             torch.cuda.empty_cache()
 
         loader_cycle = cycle(loader)
+        time_start = time.time()
         for _ in tqdm(range(iterations)):
             curr_loader = loader_cycle
             batch = next(curr_loader)
             optimizer.zero_grad()
 
-            n_weight = 1 if HOP_LENGTH == 512 else 2
+            n_weight = 3 if HOP_LENGTH == 512 else 2
+            print(f"n_weight = {n_weight}")
             transcription, transcription_losses = transcriber.run_on_batch(batch, parallel_transcriber,
                                                                            positive_weight=n_weight,
                                                                            inv_positive_weight=n_weight,
@@ -170,6 +178,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             total_loss.append(loss.item())
             print('loss:', sum(total_loss) / len(total_loss), 'Onset Precision:', onset_precision, 'Onset Recall', onset_recall,
                                                             'Pitch Onset Precision:', pitch_onset_precision, 'Pitch Onset Recall', pitch_onset_recall)
+        time_end = time.time()
+        score_msg = f'epoch {epoch} loss: {sum(total_loss) / len(total_loss)} Onset Precision:  {onset_precision} ' \
+                    f'Onset Recall {onset_recall} Pitch Onset Precision:  {pitch_onset_precision}' \
+                    f'  Pitch Onset Recall  {pitch_onset_recall} time label update: {time_end - time_start}\n'
 
         save_condition = epoch % checkpoint_interval == 1
         if save_condition:
@@ -177,11 +189,16 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             torch.save(optimizer.state_dict(), os.path.join(logdir, 'last-optimizer-state.pt'))
             torch.save({'instrument_mapping': dataset.instruments},
                        os.path.join(logdir, 'instrument_mapping.pt'.format(epoch)))
+        
+        with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
+            fp.write(score_msg)
+    shutil.copy("slurmlog.out", os.path.join(logdir, "full_log_slurm.txt"))
+    
 
 
 if __name__ == '__main__':
-    logdir = 'runs/transcriber-' + datetime.now().strftime('%y%m%d-%H%M%S') # ckpts and midi will be saved here
-    transcriber_ckpt = 'ckpts/model_64.pt'
+    logdir = '/vol/scratch/jonathany/runs/transcriber-' + datetime.now().strftime('%y%m%d-%H%M%S') # ckpts and midi will be saved here
+    transcriber_ckpt = '/vol/scratch/jonathany/ckpts/model_64.pt'
     # transcriber_ckpt = 'ckpts/model_64.pt'
     multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
 
@@ -189,20 +206,15 @@ if __name__ == '__main__':
     # multi_ckpt = True
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    checkpoint_interval = 1 # how often to save checkpoint
+    checkpoint_interval = 6 # how often to save checkpoint
     batch_size = 8
     sequence_length = SEQ_LEN if HOP_LENGTH == 512 else 3 * SEQ_LEN // 4
 
     iterations = 1000 # per epoch
     learning_rate = 0.0001
     learning_rate_decay_steps = 10000
-    clip_gradient_norm = False #3
+    clip_gradient_norm = 3
     epochs = 15
 
     train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
           clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt)
-
-# loss: 0.1544545410797 Onset Precision: 0.611353874206543 Onset Recall 0.3061355650424957 Pitch Onset Precision: 0.5938700437545776 Pitch Onset Recall 0.3832058608531952
-
-# loss: 0.20656432721018791 Onset Precision: 0.5857778191566467 Onset Recall 0.06959594041109085 Pitch Onset Precision: 0.590754508972168 Pitch Onset Recall 0.07893393188714981
-#
