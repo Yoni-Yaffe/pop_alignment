@@ -50,6 +50,7 @@ def config():
 
 def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
           clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt):
+    total_run_1 = time.time()
     print(f"device {device}")
     # print_config(ex.current_run)
     os.makedirs(logdir, exist_ok=True)
@@ -192,6 +193,9 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         
         with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
             fp.write(score_msg)
+    total_run_2 = time.time()
+    with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
+        fp.write(f"Total Runtime: {total_run_2 - total_run_1}\n")
     shutil.copy("slurmlog.out", os.path.join(logdir, "full_log_slurm.txt"))
     
 
