@@ -61,7 +61,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     n_weight = 3 if HOP_LENGTH == 512 else 2
     # train_data_path = '/disk4/ben/UnalignedSupervision/NoteEM_audio'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_labels'
-    dataset_name = 'full_pop_dataset'
+    dataset_name = 'no_solo_group1'
     train_data_path = f'/vol/scratch/jonathany/{dataset_name}/noteEM_audio'
     labels_path = f'/vol/scratch/jonathany/{dataset_name}/NoteEm_labels'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
@@ -133,6 +133,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
         POS = 1.1 # Pseudo-label positive threshold (value > 1 means no pseudo label).
         NEG = -0.1 # Pseudo-label negative threshold (value < 0 means no pseudo label).
+        # POS = 0.7 # Pseudo-label positive threshold (value > 1 means no pseudo label).
+        # NEG = -0.1 # Pseudo-label negative threshold (value < 0 means no pseudo label).
         with torch.no_grad():
             dataset.update_pts(parallel_transcriber,
                                POS=POS,
@@ -211,7 +213,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
 
 if __name__ == '__main__':
-    logdir = '/vol/scratch/jonathany/runs/transcriber-' + datetime.now().strftime('%y%m%d-%H%M%S') # ckpts and midi will be saved here
+    run_name = "no_solo_group1"
+    logdir = f"/vol/scratch/jonathany/runs/{run_name}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
     transcriber_ckpt = '/vol/scratch/jonathany/ckpts/model_64.pt'
     # transcriber_ckpt = 'ckpts/model_64.pt'
     multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
