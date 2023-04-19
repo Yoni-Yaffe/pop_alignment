@@ -81,6 +81,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     if 'pop' in dataset_name:
         conversion_map = pop_conversion_map.conversion_map
     instrument_map = None
+    print("Conversion map:", conversion_map)
+    print("Instrument map:", instrument_map)
     dataset = EMDATASET(audio_path=train_data_path,
                            labels_path=labels_path,
                            groups=train_groups,
@@ -91,8 +93,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                             conversion_map=conversion_map
                         )
     print('len dataset', len(dataset), len(dataset.data))
-    append_to_file(score_log_path, f'Dataset instruments: {self.instruments}')
-    append_to_file(score_log_path, f'Total: {len(self.instruments)} instruments')
+    append_to_file(score_log_path, f'Dataset instruments: {dataset.instruments}')
+    append_to_file(score_log_path, f'Total: {len(dataset.instruments)} instruments')
 
     #####
     if not multi_ckpt:
