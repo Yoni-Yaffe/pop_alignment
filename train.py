@@ -194,7 +194,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         time_end = time.time()
         score_msg = f'epoch {epoch} loss: {sum(total_loss) / len(total_loss)} Onset Precision:  {onset_precision} ' \
                     f'Onset Recall {onset_recall} Pitch Onset Precision:  {pitch_onset_precision}' \
-                    f'  Pitch Onset Recall  {pitch_onset_recall} time label update: {time_end - time_start}\n'
+                    f'  Pitch Onset Recall  {pitch_onset_recall} time label update: {time.strftime('%M:%S', time.gmtime(time_end - time_start))}\n'
 
         save_condition = epoch % checkpoint_interval == 1
         if save_condition:
@@ -207,7 +207,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             fp.write(score_msg)
     total_run_2 = time.time()
     with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
-        fp.write(f"Total Runtime: {total_run_2 - total_run_1}\n")
+        fp.write(f"Total Runtime: {time.strftime('%H:%M:%S', time.gmtime(total_run_2 - total_run_1))}\n")
     shutil.copy("slurmlog.out", os.path.join(logdir, "full_log_slurm.txt"))
     
 
