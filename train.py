@@ -54,6 +54,12 @@ def append_to_file(path, msg):
 
 def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
           clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt):
+    # Place holders
+    onset_precision = None
+    onset_recall = None
+    pitch_onset_precision = None
+    pitch_onset_recall = None
+
     total_run_1 = time.time()
     print(f"device {device}")
     # print_config(ex.current_run)
@@ -189,12 +195,13 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
             optimizer.step()
             total_loss.append(loss.item())
-            print('loss:', sum(total_loss) / len(total_loss), 'Onset Precision:', onset_precision, 'Onset Recall', onset_recall,
-                                                            'Pitch Onset Precision:', pitch_onset_precision, 'Pitch Onset Recall', pitch_onset_recall)
+            print(f"loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision: {onset_precision:.2f} Onset Recall {onset_recall:.2f} "
+                  f"Pitch Onset Precision: {pitch_onset_precision:.2f} Pitch Onset Recall {pitch_onset_recall:.2f}")
+
         time_end = time.time()
-        score_msg = f'epoch {epoch} loss: {sum(total_loss) / len(total_loss)} Onset Precision:  {onset_precision} ' \
-                    f'Onset Recall {onset_recall} Pitch Onset Precision:  {pitch_onset_precision}' \
-                    f'  Pitch Onset Recall  {pitch_onset_recall} time label update: {time.strftime('%M:%S', time.gmtime(time_end - time_start))}\n'
+        score_msg = f"epoch {epoch} loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision:  {onset_precision:.2f}" \
+                    f"Onset Recall {onset_recall:.2f} Pitch Onset Precision:  {pitch_onset_precision:.2f}" \
+                    f"Pitch Onset Recall  {pitch_onset_recall:.2f} time label update: {time.strftime('%M:%S', time.gmtime(time_end - time_start))}\n"
 
         save_condition = epoch % checkpoint_interval == 1
         if save_condition:
