@@ -199,8 +199,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                   f"Pitch Onset Precision: {pitch_onset_precision:.2f} Pitch Onset Recall {pitch_onset_recall:.2f}")
 
         time_end = time.time()
-        score_msg = f"epoch {epoch} loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision:  {onset_precision:.2f}" \
-                    f"Onset Recall {onset_recall:.2f} Pitch Onset Precision:  {pitch_onset_precision:.2f}" \
+        score_msg = f"epoch {epoch} loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision:  {onset_precision:.2f} " \
+                    f"Onset Recall {onset_recall:.2f} Pitch Onset Precision:  {pitch_onset_precision:.2f} " \
                     f"Pitch Onset Recall  {pitch_onset_recall:.2f} time label update: {time.strftime('%M:%S', time.gmtime(time_end - time_start))}\n"
 
         save_condition = epoch % checkpoint_interval == 1
