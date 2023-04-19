@@ -14,6 +14,7 @@ from torch.nn import DataParallel
 from onsets_and_frames.transcriber import load_weights
 import time
 import shutil
+import pop_conversion_map
 
 def set_diff(model, diff=True):
     for layer in model.children():
@@ -60,8 +61,9 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     n_weight = 3 if HOP_LENGTH == 512 else 2
     # train_data_path = '/disk4/ben/UnalignedSupervision/NoteEM_audio'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_labels'
-    train_data_path = '/vol/scratch/jonathany/sanity_check/NoteEm_audio'
-    labels_path = '/vol/scratch/jonathany/sanity_check/NoteEm_labels'
+    dataset_name = 'full_pop_dataset'
+    train_data_path = f'/vol/scratch/jonathany/{dataset_name}/noteEM_audio'
+    labels_path = f'/vol/scratch/jonathany/{dataset_name}/NoteEm_labels'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
 
     os.makedirs(labels_path, exist_ok=True)
@@ -73,9 +75,11 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                  f"epochs: {epochs}, transcriber_ckpt: {transcriber_ckpt}, multi_ckpt: {multi_ckpt}, n_weight: {n_weight}\n")
     # train_groups = ['Bach Brandenburg Concerto 1 A']
     # train_groups = ['MusicNetSamples', 'new_samples']
-    train_groups = ['sanity_check']
+    train_groups = [dataset_name]
 
     conversion_map = None
+    if 'pop' in dataset_name:
+        conversion_map = pop_conversion_map.conversion_map
     instrument_map = None
     dataset = EMDATASET(audio_path=train_data_path,
                            labels_path=labels_path,

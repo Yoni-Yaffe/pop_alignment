@@ -21,7 +21,7 @@ def midi2tsv_process(midi_path, target_path, shift=0, force_instrument=None):
 
 
 # midi_src_pth = '/path/to/midi/perfromance'
-midi_src_pth = '/vol/scratch/jonathany/sanity_check'
+midi_src_pth = '/vol/scratch/jonathany/full_pop_dataset'
 
 # target = '/disk4/ben/UnalignedSupervision/NoteEM_tsv'
 target = 'NoteEM_tsv'
