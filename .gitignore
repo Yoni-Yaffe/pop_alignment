@@ -5,3 +5,6 @@
 *.err
 *.pyc
 *.pyo
+activate_venv
+run_train2
+send_to_slurm_new_venv.slurm
