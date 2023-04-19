@@ -46,6 +46,9 @@ def config():
 
     ex.observers.append(FileStorageObserver.create(logdir))
 
+def append_to_file(path, msg):
+    with open(path, 'a') as fp:
+        fp.write(msg + '\n')
 
 
 def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
@@ -54,6 +57,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     print(f"device {device}")
     # print_config(ex.current_run)
     os.makedirs(logdir, exist_ok=True)
+    n_weight = 3 if HOP_LENGTH == 512 else 2
     # train_data_path = '/disk4/ben/UnalignedSupervision/NoteEM_audio'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_labels'
     train_data_path = '/vol/scratch/jonathany/sanity_check/NoteEm_audio'
@@ -61,12 +65,12 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
 
     os.makedirs(labels_path, exist_ok=True)
-
+    score_log_path = os.path.join(logdir, "score_log.txt")
     with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
         fp.write(f"Parameters:\ndevice: {device}, iterations: {iterations}, checkpoint_interval: {checkpoint_interval},"
                  f" batch_size: {batch_size}, sequence_length: {sequence_length}, learning_rate: {learning_rate}, "
                  f"learning_rate_decay_steps: {learning_rate_decay_steps}, clip_gradient_norm: {clip_gradient_norm}, "
-                 f"epochs: {epochs}, transcriber_ckpt: {transcriber_ckpt}, multi_ckpt: {multi_ckpt}\n")
+                 f"epochs: {epochs}, transcriber_ckpt: {transcriber_ckpt}, multi_ckpt: {multi_ckpt}, n_weight: {n_weight}\n")
     # train_groups = ['Bach Brandenburg Concerto 1 A']
     # train_groups = ['MusicNetSamples', 'new_samples']
     train_groups = ['sanity_check']
@@ -83,6 +87,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                             conversion_map=conversion_map
                         )
     print('len dataset', len(dataset), len(dataset.data))
+    append_to_file(score_log_path, f'Dataset instruments: {self.instruments}')
+    append_to_file(score_log_path, f'Total: {len(self.instruments)} instruments')
 
     #####
     if not multi_ckpt:
@@ -150,8 +156,6 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             batch = next(curr_loader)
             optimizer.zero_grad()
 
-            n_weight = 3 if HOP_LENGTH == 512 else 2
-            print(f"n_weight = {n_weight}")
             transcription, transcription_losses = transcriber.run_on_batch(batch, parallel_transcriber,
                                                                            positive_weight=n_weight,
                                                                            inv_positive_weight=n_weight,
