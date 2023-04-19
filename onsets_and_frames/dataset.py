@@ -30,7 +30,7 @@ class EMDATASET(Dataset):
         self.conversion_map = conversion_map
         self.file_list = self.files(self.groups)
         if instrument_map is None:
-            self.get_instruments()
+            self.get_instruments(conversion_map=conversion_map)
         else:
             self.instruments = instrument_map
             if update_instruments:
@@ -76,12 +76,14 @@ class EMDATASET(Dataset):
                     res.append((curr_fls_pth + os.sep + f, tsvs_path + os.sep + group + os.sep + t))
         return res
 
-    def get_instruments(self):
+    def get_instruments(self, conversion_map=None):
         instruments = set()
         for _, f in self.file_list:
             print('loading midi from', f)
             events = np.loadtxt(f, delimiter='\t', skiprows=1)
             curr_instruments = set(events[:, -1])
+            if conversion_map is not None:
+                curr_instruments = {conversion_map[c] if c in conversion_map else c for c in curr_instruments}
             instruments = instruments.union(curr_instruments)
         instruments = [int(elem) for elem in instruments if elem < 115]
         instruments = list(set(instruments))

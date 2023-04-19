@@ -1,0 +1,331 @@
+,id,composer,composition,movement,ensemble,source,transcriber,catalog_name,seconds,instruments
+0,1727,Schubert,Piano Quintet in A major,2. Andante,Piano Quintet,European Archive,http://tirolmusic.blogspot.com/,OP114,447,1 41 42 43 44
+1,1728,Schubert,Piano Quintet in A major,3. Scherzo: Presto,Piano Quintet,European Archive,http://tirolmusic.blogspot.com/,OP114,251,1 41 42 43 44
+2,1729,Schubert,Piano Quintet in A major,4. Andantino - Allegretto,Piano Quintet,European Archive,http://tirolmusic.blogspot.com/,OP114,444,1 41 42 43 44
+3,1730,Schubert,Piano Quintet in A major,5. Allegro giusto,Piano Quintet,European Archive,http://tirolmusic.blogspot.com/,OP114,368,1 41 42 43 44
+4,1733,Schubert,Piano Sonata in A major,2. Andantino,Solo Piano,Museopen,Segundo G. Yogore,D959,546,1
+5,1734,Schubert,Piano Sonata in A major,3. Scherzo. Allegro vivace,Solo Piano,Museopen,Segundo G. Yogore,D959,325,1
+6,1735,Schubert,Piano Sonata in A major,4. Rondo. Allegretto,Solo Piano,Museopen,Segundo G. Yogore,D959,714,1
+7,1739,Schubert,Piano Trio in B-flat major,4. Rondo. Allegro vivace,Piano Trio,European Archive,harfesoft.de,OP99,490,1 41 43
+8,1742,Schubert,String Quintet in C major,2. Adagio,Viola Quintet,European Archive,harfesoft.de,OP163,924,41 42 43
+9,1749,Schubert,Piano Sonata in A minor,1. Moderato,Solo Piano,Museopen,Segundo G. Yogore,D845,696,1
+10,1750,Schubert,Piano Sonata in A minor,2. Andante poco mosso,Solo Piano,Museopen,Segundo G. Yogore,D845,784,1
+11,1751,Schubert,Piano Sonata in A minor,3. Scherzo. Allegro vivace - Trio. Un poco piu lento,Solo Piano,Museopen,Segundo G. Yogore,D845,475,1
+12,1752,Schubert,Piano Sonata in A minor,4. Rondo. Allegro vivace,Solo Piano,Museopen,Segundo G. Yogore,D845,362,1
+13,1755,Schubert,Piano Sonata in A minor,2. Andante,Solo Piano,Museopen,Segundo G. Yogore,D784,229,1
+14,1756,Schubert,Piano Sonata in A minor,3. Allegro vivace,Solo Piano,Museopen,Segundo G. Yogore,D784,371,1
+15,1757,Schubert,Piano Sonata in C minor,1. Allegro,Solo Piano,Museopen,Martin Charles Bucknall,D958,710,1
+16,1758,Schubert,Piano Sonata in C minor,2. Adagio,Solo Piano,Museopen,Martin Charles Bucknall,D958,468,1
+17,1759,Schubert,Piano Sonata in C minor,3. Menuetto and Trio,Solo Piano,Museopen,Martin Charles Bucknall,D958,194,1
+18,1760,Schubert,Piano Sonata in C minor,4. Allegro,Solo Piano,Museopen,Martin Charles Bucknall,D958,655,1
+19,1763,Schubert,4 Impromptus,1. Impromptu in F minor,Solo Piano,Charlie Albright,Jeruen Espino Dery,OP142,600,1
+20,1764,Schubert,4 Impromptus,2. Impromptu in A-flat major,Solo Piano,Charlie Albright,Jeruen Espino Dery,OP142,438,1
+21,1765,Schubert,4 Impromptus,3. Impromptu in B-flat major,Solo Piano,Charlie Albright,Jeruen Espino Dery,OP142,676,1
+22,1766,Schubert,4 Impromptus,4. Impromptu in F minor,Solo Piano,Charlie Albright,Jeruen Espino Dery,OP142,427,1
+23,1768,Schubert,Piano Sonata in A major,2. Andante,Solo Piano,Museopen,Segundo G. Yogore,D664,290,1
+24,1771,Schubert,Piano Sonata in D-flat major,1. Allegro moderato,Solo Piano,Museopen,Segundo G. Yogore,D568,647,1
+25,1772,Schubert,Piano Sonata in D-flat major,2. Andante molto,Solo Piano,Museopen,Segundo G. Yogore,D568,417,1
+26,1773,Schubert,Piano Sonata in D-flat major,3. Menuetto. Allegretto,Solo Piano,Museopen,Segundo G. Yogore,D568,307,1
+27,1775,Schubert,Piano Sonata in D major,1. Allegro vivace,Solo Piano,Museopen,Segundo G. Yogore,D850,578,1
+28,1776,Schubert,Piano Sonata in D major,2. Con moto,Solo Piano,Museopen,Segundo G. Yogore,D850,726,1
+29,1777,Schubert,Piano Sonata in D major,3. Scherzo. Allegro vivace,Solo Piano,Museopen,Segundo G. Yogore,D850,629,1
+30,1788,Mozart,String Quartet No 19 in C major,1. Adagio - Allegro,String Quartet,Museopen,Gunter R. Findenegg,K465,513,41 42 43
+31,1789,Mozart,String Quartet No 19 in C major,2. Andante cantabile,String Quartet,Museopen,Gunter R. Findenegg,K465,461,41 42 43
+32,1790,Mozart,String Quartet No 19 in C major,3. Menuetto. Allegro,String Quartet,Museopen,Gunter R. Findenegg,K465,323,41 42 43
+33,1791,Mozart,String Quartet No 19 in C major,4. Allegro molto,String Quartet,Museopen,Gunter R. Findenegg,K465,351,41 42 43
+34,1792,Mozart,String Quartet No 19 in C major,1. Adagio - Allegro,String Quartet,European Archive,Gunter R. Findenegg,K465,472,41 42 43
+35,1793,Mozart,String Quartet No 19 in C major,2. Andante cantabile,String Quartet,European Archive,Gunter R. Findenegg,K465,504,41 42 43
+36,1805,Mozart,String Quartet No 14 in G major,1. Allegro vivace assai,String Quartet,European Archive,Gunter R. Findenegg,K387,356,41 42 43
+37,1807,Mozart,String Quartet No 14 in G major,3. Andante cantabile,String Quartet,European Archive,Gunter R. Findenegg,K387,444,41 42 43
+38,1811,Mozart,Clarinet Quintet in A major,2. Larghetto,Clarinet Quintet,William McColl,Reinier B. Bakels,K581,489,41 42 43 72
+39,1812,Mozart,Clarinet Quintet in A major,3. Menuetto,Clarinet Quintet,William McColl,Reinier B. Bakels,K581,466,41 42 43 72
+40,1813,Mozart,Clarinet Quintet in A major,4. Allegretto con variazioni,Clarinet Quintet,William McColl,Reinier B. Bakels,K581,591,41 42 43 72
+41,1817,Mozart,Serenade in E-flat major,2. Menuetto,Pairs Clarinet-Horn-Bassoon,Soni Ventorum Wind Quintet,Oliver Seely,K375,250,61 71 72
+42,1818,Mozart,Serenade in E-flat major,3. Adagio,Pairs Clarinet-Horn-Bassoon,Soni Ventorum Wind Quintet,Oliver Seely,K375,407,61 71 72
+43,1819,Mozart,Serenade in E-flat major,4. Menuetto,Pairs Clarinet-Horn-Bassoon,Soni Ventorum Wind Quintet,Oliver Seely,K375,177,61 71 72
+44,1822,Mozart,String Quartet No 15 in D minor,1. Allegro moderato,String Quartet,Museopen,Gunter R. Findenegg,K421,460,41 42 43
+45,1824,Mozart,String Quartet No 15 in D minor,3. Menuetto and Trio. Allegretto,String Quartet,Museopen,Gunter R. Findenegg,K421,252,41 42 43
+46,1828,Mozart,Piano Trio No 4 in E major,2. Andante grazioso,Piano Trio,European Archive,Michael Iscenko,K542,265,1 41 43
+47,1829,Mozart,Piano Trio No 4 in E major,3. Allegro,Piano Trio,European Archive,Michael Iscenko,K542,421,1 41 43
+48,1835,Mozart,String Quartet No 23 in F major,3. Menuetto. Allegretto,String Quartet,European Archive,Gunter R. Findenegg,K590,236,41 42 43
+49,1859,Mozart,String Quartet No 18 in A major,2. Menuetto and Trio,String Quartet,European Archive,Gunter R. Findenegg,K464,392,41 42 43
+50,1872,Mozart,Piano Trio No 3 in B-flat major,2. Larghetto,Piano Trio,European Archive,Michael Iscenko,K502,509,1 41 43
+51,1873,Mozart,Piano Trio No 3 in B-flat major,3. Allegretto,Piano Trio,European Archive,Michael Iscenko,K502,366,1 41 43
+52,1876,Mozart,Piano Trio No2 in G major,2. Andante,Piano Trio,European Archive,Michael Iscenko,K496,356,1 41 43
+53,1893,Mozart,Piano Trio No 6 in G major,3. Allegretto,Piano Trio,European Archive,Michael Iscenko,K564,325,1 41 43
+54,1916,Dvorak,String Quartet No 10 in E-flat major,1. Allegro ma non troppo,String Quartet,Museopen,Benjamin R. Tubb,OP51,675,41 42 43
+55,1918,Dvorak,String Quartet No 10 in E-flat major,3. Romanza,String Quartet,Museopen,Benjamin R. Tubb,OP51,367,41 42 43
+56,1919,Dvorak,String Quartet No 10 in E-flat major,4. Finale,String Quartet,Museopen,Benjamin R. Tubb,OP51,434,41 42 43
+57,1922,Dvorak,String Quartet No 10 in E-flat major,3. Romanza,String Quartet,European Archive,Benjamin R. Tubb,OP51,402,41 42 43
+58,1923,Dvorak,String Quartet No 10 in E-flat major,4. Finale,String Quartet,European Archive,Benjamin R. Tubb,OP51,393,41 42 43
+59,1931,Dvorak,String Quartet No 12 in F major,2. Lento,String Quartet,Museopen,Masahiro Ishii,OP96,471,41 42 43
+60,1932,Dvorak,String Quartet No 12 in F major,3. Molto vivace,String Quartet,Museopen,Masahiro Ishii,OP96,250,41 42 43
+61,1933,Dvorak,String Quartet No 12 in F major,4. Finale: vivace ma non troppo,String Quartet,Museopen,Masahiro Ishii,OP96,351,41 42 43
+62,2075,Cambini,Wind Quintet No 1 in B-flat Major,1. Allegro maestoso,Wind Quintet,Soni Ventorum Wind Quintet,Oliver Seely,JOHN1,329,61 69 71 72 74
+63,2076,Cambini,Wind Quintet No 1 in B-flat Major,2. Larghetto cantabile,Wind Quintet,Soni Ventorum Wind Quintet,Oliver Seely,JOHN1,247,61 69 71 72 74
+64,2077,Cambini,Wind Quintet No 1 in B-flat Major,3. Rondo Allegretto grazioso,Wind Quintet,Soni Ventorum Wind Quintet,Oliver Seely,JOHN1,250,61 69 71 72 74
+65,2078,Cambini,Wind Quintet No 2 in D Minor,1. Allegro espressivo,Wind Quintet,Soni Ventorum Wind Quintet,Oliver Seely,JOHN2,355,61 69 71 72 74
+66,2079,Cambini,Wind Quintet No 2 in D Minor,2. Larghetto sostenuto ma con moto,Wind Quintet,Soni Ventorum Wind Quintet,Oliver Seely,JOHN2,278,61 69 71 72 74
+67,2080,Cambini,Wind Quintet No 2 in D Minor,3. Presto ma non tanto,Wind Quintet,Soni Ventorum Wind Quintet,Oliver Seely,JOHN2,233,61 69 71 72 74
+68,2081,Cambini,Wind Quintet No 3 in F Major,1. Allegro maestoso,Wind Quintet,Soni Ventorum Wind Quintet,Oliver Seely,JOHN3,299,61 69 71 72 74
+69,2082,Cambini,Wind Quintet No 3 in F Major,2. Larghetto sostenuto,Wind Quintet,Soni Ventorum Wind Quintet,Oliver Seely,JOHN3,341,61 69 71 72 74
+70,2083,Cambini,Wind Quintet No 3 in F Major,3. Rondo Allegro con brio,Wind Quintet,Soni Ventorum Wind Quintet,Oliver Seely,JOHN3,245,61 69 71 72 74
+71,2104,Haydn,Quartet No 53 in D major,1. Allegro moderato,String Quartet,Museopen,Andrew D. Lawson,OP64NO5,371,41 42 43
+72,2105,Haydn,Quartet No 53 in D major,2. Adagio - Cantabile,String Quartet,Museopen,Andrew D. Lawson,OP64NO5,291,41 42 43
+73,2106,Haydn,Quartet No 53 in D major,3. Menuetto: Allegretto,String Quartet,Museopen,Andrew D. Lawson,OP64NO5,226,41 42 43
+74,2112,Brahms,Cello Sonata No 1 in E minor,1. Allegro non troppo,Accompanied Cello,Stefano Ligoratti,Eric L. Schissel,OP38,897,1 43
+75,2113,Brahms,Cello Sonata No 1 in E minor,2. Allegretto quasi Menuetto,Accompanied Cello,Stefano Ligoratti,Eric L. Schissel,OP38,352,1 43
+76,2114,Brahms,Cello Sonata No 1 in E minor,3. Allegro,Accompanied Cello,Stefano Ligoratti,Eric L. Schissel,OP38,403,1 43
+77,2116,Brahms,Clarinet Sonata No 1 in F minor,1. Allegro appassionato,Accompanied Clarinet,Ben Redwine,clarinetinstitute,OP120NO1,410,1 72
+78,2117,Brahms,Clarinet Sonata No 1 in F minor,2. Andante un poco Adagio,Accompanied Clarinet,Ben Redwine,clarinetinstitute,OP120NO1,266,1 72
+79,2118,Brahms,Clarinet Sonata No 1 in F minor,3. Allegretto grazioso,Accompanied Clarinet,Ben Redwine,clarinetinstitute,OP120NO1,232,1 72
+80,2119,Brahms,Clarinet Sonata No 1 in F minor,4. Vivace,Accompanied Clarinet,Ben Redwine,clarinetinstitute,OP120NO1,294,1 72
+81,2127,Brahms,Serenade No 1 in D Major,2. Scherzo. Allegro non troppo,Wind and Strings Octet,European Archive,Oliver Seely,OP11,518,41 42 43 44 61 71 72 74
+82,2131,Brahms,Serenade No 1 in D Major,6. Rondo. Allegro,Wind and Strings Octet,European Archive,Oliver Seely,OP11,274,41 42 43 44 61 71 72 74
+83,2138,Brahms,String Quartet in C minor,2. Romanze: Poco adagio,String Quartet,European Archive,harfesoft.de,OP51NO1,429,41 42 43
+84,2140,Brahms,String Quartet in C minor,4. Allegro,String Quartet,European Archive,harfesoft.de,OP51NO1,381,41 42 43
+85,2147,Brahms,String Sextet No 2 in G major,4. Poco allegro,String Sextet,European Archive,harfesoft.de,OP36,501,41 42 43
+86,2148,Brahms,Piano Quartet No 1 in G minor,1. Allegro,Piano Quartet,Roxana Pavel Goldstein,harfesoft.de,OP25,822,1 41 42 43
+87,2149,Brahms,Piano Quartet No 1 in G minor,2. Intermezzo: Allegro ma non troppo,Piano Quartet,Roxana Pavel Goldstein,harfesoft.de,OP25,476,1 41 42 43
+88,2150,Brahms,Piano Quartet No 1 in G minor,3. Andante con moto,Piano Quartet,Roxana Pavel Goldstein,harfesoft.de,OP25,599,1 41 42 43
+89,2151,Brahms,Piano Quartet No 1 in G minor,4. Rondo alla Zingarese: Presto,Piano Quartet,Roxana Pavel Goldstein,harfesoft.de,OP25,533,1 41 42 43
+90,2154,Brahms,String Sextet No 1 in B-flat major,1. Allegro ma non troppo,String Sextet,Carl Banner,harfesoft.de,OP18,894,41 42 43
+91,2155,Brahms,String Sextet No 1 in B-flat major,"2. Andante, ma moderato",String Sextet,Carl Banner,harfesoft.de,OP18,606,41 42 43
+92,2156,Brahms,String Sextet No 1 in B-flat major,3. Scherzo. Allegro molto,String Sextet,Carl Banner,harfesoft.de,OP18,192,41 42 43
+93,2157,Brahms,String Sextet No 1 in B-flat major,4. Rondo: Poco Allegretto e grazioso,String Sextet,Carl Banner,harfesoft.de,OP18,661,41 42 43
+94,2158,Brahms,Horn Trio in E-flat major,1. Andante,Horn Piano Trio,European Archive,David Rothschild,OP40,482,1 41 61
+95,2159,Brahms,Horn Trio in E-flat major,2. Scherzo (Allegro),Horn Piano Trio,European Archive,David Rothschild,OP40,466,1 41 61
+96,2160,Brahms,Horn Trio in E-flat major,3. Adagio mesto,Horn Piano Trio,European Archive,David Rothschild,OP40,446,1 41 61
+97,2161,Brahms,Horn Trio in E-flat major,4. Allegro con brio,Horn Piano Trio,European Archive,David Rothschild,OP40,397,1 41 61
+98,2166,Faure,Piano Quartet No 2 in G minor,1. Allegro molto moderato,Piano Quartet,European Archive,Gregory Richardson,OP45,639,1 41 42 43
+99,2167,Faure,Piano Quartet No 2 in G minor,2. Allegro molto,Piano Quartet,European Archive,Gregory Richardson,OP45,193,1 41 42 43
+100,2168,Faure,Piano Quartet No 2 in G minor,3. Adagio non troppo,Piano Quartet,European Archive,Gregory Richardson,OP45,612,1 41 42 43
+101,2169,Faure,Piano Quartet No 2 in G minor,4. Allegro molto,Piano Quartet,European Archive,Gregory Richardson,OP45,519,1 41 42 43
+102,2177,Ravel,String Quartet in F,1. Allegro moderato - tres doux,String Quartet,Musicians from Marlboro,Gregory Richardson,35,490,41 42 43
+103,2178,Ravel,String Quartet in F,2. Assez vif - tres rythme,String Quartet,Musicians from Marlboro,Gregory Richardson,35,355,41 42 43
+104,2179,Ravel,String Quartet in F,3. Tres lent,String Quartet,Musicians from Marlboro,Gregory Richardson,35,505,41 42 43
+105,2180,Ravel,String Quartet in F,4. Vif et agite,String Quartet,Musicians from Marlboro,Gregory Richardson,35,293,41 42 43 74
+106,2186,Bach,Violin Partita No 3 in E major,1. Preludio,Solo Violin,Oliver Colbentston,suzumidi,BWV1006,214,41 42
+107,2191,Bach,Violin Partita No 3 in E major,6. Bourree,Solo Violin,Oliver Colbentston,suzumidi,BWV1006,102,41
+108,2194,Bach,"WTK I, No. 13: Prelude and Fugue in F-sharp major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV858,100,1
+109,2195,Bach,"WTK I, No. 3: Prelude and Fugue in C-sharp major",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV848,155,1
+110,2196,Bach,"WTK I, No. 3: Prelude and Fugue in C-sharp major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV848,75,1
+111,2198,Bach,"WTK I, No. 22: Prelude and Fugue in B-flat minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV867,197,1
+112,2200,Bach,"WTK I, No. 16: Prelude and Fugue in G minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV861,113,1
+113,2201,Bach,"WTK I, No. 16: Prelude and Fugue in G minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV861,134,1
+114,2202,Bach,Partita in A minor,1. Allemande,Solo Flute,Scott Goff,David J. Grossman,BWV1013,181,74
+115,2203,Bach,Partita in A minor,2. Corrente,Solo Flute,Scott Goff,David J. Grossman,BWV1013,156,74
+116,2204,Bach,Partita in A minor,3. Sarabande,Solo Flute,Scott Goff,David J. Grossman,BWV1013,132,74
+117,2207,Bach,"WTK I, No. 10: Prelude and Fugue in E minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV855,89,1
+118,2208,Bach,"WTK I, No. 10: Prelude and Fugue in E minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV855,120,1
+119,2209,Bach,"WTK I, No. 4: Prelude and Fugue in C-sharp minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV849,160,1
+120,2210,Bach,"WTK I, No. 4: Prelude and Fugue in C-sharp minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV849,178,1
+121,2211,Bach,"WTK I, No. 12: Prelude and Fugue in F minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV857,237,1
+122,2212,Bach,"WTK I, No. 12: Prelude and Fugue in F minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV857,173,1
+123,2213,Bach,"WTK I, No. 2: Prelude and Fugue in C minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV847,115,1
+124,2214,Bach,"WTK I, No. 2: Prelude and Fugue in C minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV847,107,1
+125,2215,Bach,"WTK I, No. 1: Prelude and Fugue in C major",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV846,116,1
+126,2217,Bach,Cello Suite 3,1. Prelude,Solo Cello,European Archive,David J. Grossman,BWV1009,186,43
+127,2218,Bach,Cello Suite 3,2. Allemande,Solo Cello,European Archive,David J. Grossman,BWV1009,199,43
+128,2219,Bach,Cello Suite 3,3. Courante,Solo Cello,European Archive,David J. Grossman,BWV1009,260,43
+129,2220,Bach,Cello Suite 3,4. Sarabande,Solo Cello,European Archive,David J. Grossman,BWV1009,302,43
+130,2221,Bach,Cello Suite 3,5. Bouree,Solo Cello,European Archive,David J. Grossman,BWV1009,241,43
+131,2222,Bach,Cello Suite 3,6. Gigue,Solo Cello,European Archive,David J. Grossman,BWV1009,202,43
+132,2224,Bach,"WTK I, No. 7: Prelude and Fugue in E-flat major",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV852,108,1
+133,2225,Bach,"WTK I, No. 7: Prelude and Fugue in E-flat major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV852,213,1
+134,2227,Bach,"WTK I, No. 6: Prelude and Fugue in D minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV851,129,1
+135,2228,Bach,"WTK I, No. 6: Prelude and Fugue in D minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV851,98,1
+136,2229,Bach,"WTK I, No. 20: Prelude and Fugue in A minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV865,244,1
+137,2230,Bach,"WTK I, No. 20: Prelude and Fugue in A minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV865,84,1
+138,2231,Bach,"WTK I, No. 21: Prelude and Fugue in B-flat major",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV866,115,1
+139,2232,Bach,"WTK I, No. 21: Prelude and Fugue in B-flat major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV866,78,1
+140,2234,Bach,"WTK I, No. 11: Prelude and Fugue in F major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV856,64,1
+141,2237,Bach,"WTK I, No. 23: Prelude and Fugue in B major",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV868,109,1
+142,2238,Bach,"WTK I, No. 23: Prelude and Fugue in B major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV868,60,1
+143,2239,Bach,"WTK I, No. 17: Prelude and Fugue in A-flat major",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV862,120,1
+144,2240,Bach,"WTK I, No. 17: Prelude and Fugue in A-flat major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV862,92,1
+145,2241,Bach,Violin Sonata No 1 in G minor,1. Adagio,Solo Violin,European Archive,suzumidi,BWV1001,242,41 42 43
+146,2242,Bach,Violin Sonata No 1 in G minor,2. Fuga,Solo Violin,European Archive,suzumidi,BWV1001,312,41 42 43
+147,2243,Bach,Violin Sonata No 1 in G minor,3. Siciliana,Solo Violin,European Archive,suzumidi,BWV1001,193,41 42 43
+148,2244,Bach,Violin Sonata No 1 in G minor,4. Presto,Solo Violin,European Archive,suzumidi,BWV1001,214,41
+149,2247,Bach,"WTK I, No. 9: Prelude and Fugue in E major",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV854,81,1
+150,2248,Bach,"WTK I, No. 9: Prelude and Fugue in E major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV854,104,1
+151,2282,Bach,Violin Sonata in B minor,1. Adagio,Violin and Harpsichord,Paul Pitman,suzumidi,BWV1014,313,7 41
+152,2283,Bach,Violin Sonata in B minor,2. Allegro,Violin and Harpsichord,Paul Pitman,suzumidi,BWV1014,192,7 41
+153,2284,Bach,Violin Sonata in B minor,3. Andante,Violin and Harpsichord,Paul Pitman,suzumidi,BWV1014,227,7 41
+154,2285,Bach,Violin Sonata in B minor,4. Allegro,Violin and Harpsichord,Paul Pitman,suzumidi,BWV1014,225,7 41
+155,2288,Bach,Violin Partita No 1 in B minor,2. Corrente,Solo Violin,John Garner,suzumidi,BWV1002,191,41
+156,2289,Bach,Violin Partita No 1 in B minor,3. Sarabande,Solo Violin,John Garner,suzumidi,BWV1002,203,41
+157,2292,Bach,"WTK I, No. 19: Prelude and Fugue in A major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV864,91,1
+158,2293,Bach,Cello Suite 4,1. Prelude,Solo Cello,European Archive,David J. Grossman,BWV1010,310,43
+159,2294,Bach,Cello Suite 4,2. Allemande,Solo Cello,European Archive,David J. Grossman,BWV1010,228,43
+160,2295,Bach,Cello Suite 4,3. Courante,Solo Cello,European Archive,David J. Grossman,BWV1010,259,43
+161,2296,Bach,Cello Suite 4,4. Sarabande,Solo Cello,European Archive,David J. Grossman,BWV1010,291,43
+162,2297,Bach,Cello Suite 4,5. Bouree,Solo Cello,European Archive,David J. Grossman,BWV1010,334,43
+163,2298,Bach,Cello Suite 4,6. Gigue,Solo Cello,European Archive,David J. Grossman,BWV1010,153,43
+164,2300,Bach,"WTK I, No. 8: Prelude and Fugue in E-flat minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV853,238,1
+165,2302,Bach,"WTK I, No. 5: Prelude and Fugue in D major",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV850,108,1
+166,2303,Bach,"WTK I, No. 5: Prelude and Fugue in D major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV850,92,1
+167,2304,Bach,"WTK I, No. 14: Prelude and Fugue in F-sharp minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV859,196,1
+168,2305,Bach,"WTK I, No. 14: Prelude and Fugue in F-sharp minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV859,65,1
+169,2307,Bach,"WTK I, No. 18: Prelude and Fugue in G-sharp minor",2. Fugue,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV863,137,1
+170,2308,Bach,"WTK I, No. 18: Prelude and Fugue in G-sharp minor",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV863,121,1
+171,2310,Bach,"WTK I, No. 15: Prelude and Fugue in G major",1. Prelude,Solo Piano,Kimiko Ishizaka,www.bachcentral.com,BWV860,55,1
+172,2313,Beethoven,String Quartet No 15 in A minor,1. Allegro,String Quartet,European Archive,suzumedia,OP132,593,41 42 43
+173,2314,Beethoven,String Quartet No 15 in A minor,2. Allegro ma non tanto,String Quartet,European Archive,suzumedia,OP132,568,41 42 43
+174,2315,Beethoven,String Quartet No 15 in A minor,3. Molto Adagio; Andante,String Quartet,European Archive,suzumedia,OP132,1069,41 42 43
+175,2318,Beethoven,Trio in E-flat major,1. Allegro moderato,Clarinet-Cello-Piano Trio,Paul Pitman,harfesoft.de,OP38,641,1 43 72
+176,2319,Beethoven,Trio in E-flat major,2. Scherzo: Allegro ma non troppo,Clarinet-Cello-Piano Trio,Paul Pitman,harfesoft.de,OP38,620,1 43 72
+177,2320,Beethoven,Trio in E-flat major,3. Rondo: Allegro,Clarinet-Cello-Piano Trio,Paul Pitman,harfesoft.de,OP38,222,1 43 72
+178,2322,Beethoven,Piano Sonata No 23 in F minor,1. Allegro assai,Solo Piano,Paul Pitman,piano-midi.de,OP57,645,1
+179,2325,Beethoven,Piano Sonata No 23 in F minor,1. Allegro assai,Solo Piano,European Archive,piano-midi.de,OP57,551,1
+180,2330,Beethoven,Violin Sonata No 1 in D major,1. Allegro con brio,Accompanied Violin,Timothy Jones,Darren L. Slider,OP12NO1,532,1 41
+181,2334,Beethoven,Violin Sonata No 8 in G major,1. Allegro assai,Accompanied Violin,Edward Auer,suzumedia,OP30NO3,409,1 41
+182,2335,Beethoven,Violin Sonata No 8 in G major,"2. Tempo di minuetto, ma molto moderato e grazioso",Accompanied Violin,Edward Auer,suzumedia,OP30NO3,422,1 41
+183,2336,Beethoven,Violin Sonata No 8 in G major,3. Allegro vivace,Accompanied Violin,Edward Auer,suzumedia,OP30NO3,197,1 41
+184,2341,Beethoven,Violin Sonata No 8 in G major,"2. Tempo di minuetto, ma molto moderato e grazioso",Accompanied Violin,European Archive,suzumedia,OP30NO3,460,1 41
+185,2342,Beethoven,Violin Sonata No 8 in G major,3. Allegro vivace,Accompanied Violin,European Archive,suzumedia,OP30NO3,192,1 41
+186,2343,Beethoven,Piano Sonata No 14 in C-sharp minor,1. Adagio sostenuto,Solo Piano,Stefano Ligoratti,piano-midi.de,OP27NO2,332,1
+187,2345,Beethoven,Piano Sonata No 14 in C-sharp minor,3. Presto agitato,Solo Piano,Stefano Ligoratti,piano-midi.de,OP27NO2,443,1
+188,2346,Beethoven,Piano Sonata No 14 in C-sharp minor,1. Adagio sostenuto,Solo Piano,Paul Pitman,piano-midi.de,OP27NO2,335,1
+189,2348,Beethoven,Piano Sonata No 14 in C-sharp minor,3. Presto agitato,Solo Piano,Paul Pitman,piano-midi.de,OP27NO2,493,1
+190,2350,Beethoven,Piano Sonata No 14 in C-sharp minor,1. Adagio sostenuto,Solo Piano,Glen W. Prillaman,piano-midi.de,OP27NO2,276,1
+191,2357,Beethoven,Piano Sonata No 15 in D major,2. Andante,Solo Piano,Paul Pitman,piano-midi.de,OP28,357,1
+192,2358,Beethoven,Piano Sonata No 15 in D major,3. Scherzo: Allegro vivace,Solo Piano,Paul Pitman,piano-midi.de,OP28,137,1
+193,2359,Beethoven,Piano Sonata No 15 in D major,4. Rondo: Allegro ma non troppo,Solo Piano,Paul Pitman,piano-midi.de,OP28,304,1
+194,2364,Beethoven,Piano Sonata No 15 in D major,4. Rondo: Allegro ma non troppo,Solo Piano,Karine Gilanyan,piano-midi.de,OP28,296,1
+195,2365,Beethoven,String Quartet No 12 in E-flat major,1. Maestoso - Allegro,String Quartet,Pascal String Quartet,suzumedia,OP127,402,41 42 43
+196,2366,Beethoven,String Quartet No 12 in E-flat major,"2. Adagio, ma non troppo e molto cantabile",String Quartet,Pascal String Quartet,suzumedia,OP127,941,41 42 43
+197,2368,Beethoven,String Quartet No 12 in E-flat major,4. Allegro,String Quartet,Pascal String Quartet,suzumedia,OP127,434,41 42 43
+198,2371,Beethoven,Piano Sonata No 9 in E major,2. Allegretto,Solo Piano,Paul Pitman,piano-midi.de,OP14NO1,205,1
+199,2372,Beethoven,Piano Sonata No 9 in E major,3. Rondo - Allegro comodo,Solo Piano,Paul Pitman,piano-midi.de,OP14NO1,228,1
+200,2373,Beethoven,Piano Sonata No 19 in G minor,1. Andante,Solo Piano,Paul Pitman,piano-midi.de,OP49NO1,318,1
+201,2374,Beethoven,Piano Sonata No 19 in G minor,2. Rondo: Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP49NO1,216,1
+202,2376,Beethoven,String Quartet No 8 in E minor,1. Allegro,String Quartet,European Archive,suzumedia,OP59NO2,581,41 42 43
+203,2377,Beethoven,String Quartet No 8 in E minor,2. Molto adagio,String Quartet,European Archive,suzumedia,OP59NO2,767,41 42 43
+204,2379,Beethoven,String Quartet No 8 in E minor,"4. Finale, Presto, alla breve",String Quartet,European Archive,suzumedia,OP59NO2,334,41 42 43
+205,2381,Beethoven,String Quartet No 13 in B-flat major,"1. Adagio, ma non troppo - Allegro",String Quartet,European Archive,suzumedia,OP130,560,41 42 43
+206,2382,Beethoven,String Quartet No 13 in B-flat major,2. Presto,String Quartet,European Archive,suzumedia,OP130,117,41 42 43
+207,2383,Beethoven,String Quartet No 13 in B-flat major,"3. Andante con moto, ma non troppo. Poco scherzoso",String Quartet,European Archive,suzumedia,OP130,383,41 42 43
+208,2384,Beethoven,String Quartet No 13 in B-flat major,4. Alla danza tedesca. Allegro assai,String Quartet,European Archive,suzumedia,OP130,212,41 42 43
+209,2388,Beethoven,Piano Sonata No 17 in D minor,1. Largo - Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP31NO2,473,1
+210,2389,Beethoven,Piano Sonata No 17 in D minor,2. Adagio,Solo Piano,Paul Pitman,piano-midi.de,OP31NO2,449,1
+211,2390,Beethoven,Piano Sonata No 17 in D minor,3. Allegretto,Solo Piano,Paul Pitman,piano-midi.de,OP31NO2,392,1
+212,2391,Beethoven,Piano Sonata No 17 in D minor,1. Largo - Allegro,Solo Piano,Stefano Ligoratti,piano-midi.de,OP31NO2,473,1
+213,2392,Beethoven,Piano Sonata No 17 in D minor,2. Adagio,Solo Piano,Stefano Ligoratti,piano-midi.de,OP31NO2,437,1
+214,2393,Beethoven,Piano Sonata No 17 in D minor,3. Allegretto,Solo Piano,Stefano Ligoratti,piano-midi.de,OP31NO2,383,1
+215,2397,Beethoven,Violin Sonata No 9 in A major,1. Adagio sostenuto - Presto,Accompanied Violin,Edward Auer,Darren L. Slider,OP47,623,1 41
+216,2398,Beethoven,Violin Sonata No 9 in A major,2. Andante con variazioni,Accompanied Violin,Edward Auer,Darren L. Slider,OP47,910,1 41
+217,2403,Beethoven,String Quartet No 1 in F Major,4. Allegro,String Quartet,European Archive,suzumedia,OP18NO1,358,41 42 43
+218,2404,Beethoven,Piano Sonata No 20 in A-flat major,1. Moderato cantabile molto espressivo,Solo Piano,Paul Pitman,piano-midi.de,OP110,399,1
+219,2405,Beethoven,Piano Sonata No 20 in A-flat major,2. Allegro molto,Solo Piano,Paul Pitman,piano-midi.de,OP110,137,1
+220,2406,Beethoven,Piano Sonata No 20 in A-flat major,3. Adagio ma non troppo,Solo Piano,Paul Pitman,piano-midi.de,OP110,612,1
+221,2410,Beethoven,Piano Sonata No 13 in E-flat major,1. Andante - Allegro - Andante,Solo Piano,Paul Pitman,piano-midi.de,OP27NO1,313,1
+222,2411,Beethoven,Piano Sonata No 13 in E-flat major,2. Allegro molto e vivace,Solo Piano,Paul Pitman,piano-midi.de,OP27NO1,129,1
+223,2415,Beethoven,Sextet in E-flat major for Winds,2. Adagio,Pairs Clarinet-Horn-Bassoon,Skidmore Wind Ensemble,Edgard Bourgevin,OP71,227,61 71 72
+224,2416,Beethoven,Sextet in E-flat major for Winds,3. Menuetto. Quasi Allegretto - Trio,Pairs Clarinet-Horn-Bassoon,Skidmore Wind Ensemble,Edgard Bourgevin,OP71,139,61 71 72
+225,2417,Beethoven,Sextet in E-flat major for Winds,4. Rondo. Allegro,Pairs Clarinet-Horn-Bassoon,Skidmore Wind Ensemble,Edgard Bourgevin,OP71,227,61 71 72
+226,2420,Beethoven,Violin Sonata No 2 in A major,3. Allegro piacevole,Accompanied Violin,European Archive,Darren L. Slider,OP12NO2,236,1 41
+227,2422,Beethoven,Piano Sonata No 1 in F minor,1. Allegro,Solo Piano,Paul Pitman,suzumidi,OP2NO1,241,1
+228,2423,Beethoven,Piano Sonata No 1 in F minor,2. Adagio,Solo Piano,Paul Pitman,suzumidi,OP2NO1,297,1
+229,2424,Beethoven,Piano Sonata No 1 in F minor,3. Menuetto,Solo Piano,Paul Pitman,suzumidi,OP2NO1,202,1
+230,2431,Beethoven,String Quartet No 16 in F major,1. Allegretto,String Quartet,European Archive,suzumedia,OP135,320,41 42 43
+231,2432,Beethoven,String Quartet No 16 in F major,2. Vivace,String Quartet,European Archive,suzumedia,OP135,193,41 42 43
+232,2433,Beethoven,String Quartet No 16 in F major,"3. Lento assai, cantante e tranquillo",String Quartet,European Archive,suzumedia,OP135,461,41 42 43
+233,2436,Beethoven,Piano Sonata No 21 in C major,1. Allegro con brio,Solo Piano,Paul Pitman,piano-midi.de,OP53,684,1
+234,2441,Beethoven,Piano Sonata No 29 in B-flat major,1. Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP106,794,1
+235,2442,Beethoven,Piano Sonata No 29 in B-flat major,2. Scherzo: Assai vivace,Solo Piano,Paul Pitman,piano-midi.de,OP106,175,1
+236,2443,Beethoven,Piano Sonata No 29 in B-flat major,3. Adagio sostenuto,Solo Piano,Paul Pitman,piano-midi.de,OP106,1035,1
+237,2444,Beethoven,Piano Sonata No 29 in B-flat major,4. Introduzione: Largo...Allegro - Fuga: Allegro risoluto,Solo Piano,Paul Pitman,piano-midi.de,OP106,770,1
+238,2451,Beethoven,String Quartet No 6 in B-flat major,2. Adagio ma non troppo,String Quartet,Museopen,suzumedia,OP18NO6,421,41 42 43
+239,2462,Beethoven,Violin Sonata No 4 in A minor,"2. Andante scherzoso, piu allegretto",Accompanied Violin,European Archive,Darren L. Slider,OP23,489,1 41
+240,2463,Beethoven,Violin Sonata No 4 in A minor,3. Allegro molto,Accompanied Violin,European Archive,Darren L. Slider,OP23,309,1 41
+241,2466,Beethoven,Violin Sonata No 4 in A minor,3. Allegro molto,Accompanied Violin,European Archive,Darren L. Slider,OP23,305,1 41
+242,2471,Beethoven,Piano Sonata No 3 in C major,2. Adagio,Solo Piano,Paul Pitman,piano-midi.de,OP2NO3,453,1
+243,2472,Beethoven,Piano Sonata No 3 in C major,3. Scherzo: Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP2NO3,215,1
+244,2473,Beethoven,Piano Sonata No 3 in C major,4. Allegro assai,Solo Piano,Paul Pitman,piano-midi.de,OP2NO3,335,1
+245,2476,Beethoven,Piano Sonata No 3 in C major,2. Adagio,Solo Piano,Glen W. Prillaman,piano-midi.de,OP2NO3,474,1
+246,2477,Beethoven,Piano Sonata No 3 in C major,3. Scherzo: Allegro,Solo Piano,Glen W. Prillaman,piano-midi.de,OP2NO3,220,1
+247,2478,Beethoven,Piano Sonata No 3 in C major,4. Allegro assai,Solo Piano,Glen W. Prillaman,piano-midi.de,OP2NO3,319,1
+248,2480,Beethoven,String Quartet No 5 in A major,1. Allegro,String Quartet,Pascal String Quartet,suzumedia,OP18NO5,395,41 42 43
+249,2481,Beethoven,String Quartet No 5 in A major,2. Menuetto,String Quartet,Pascal String Quartet,suzumedia,OP18NO5,354,41 42 43
+250,2482,Beethoven,String Quartet No 5 in A major,3. Andante cantabile (Theme with variations,String Quartet,Pascal String Quartet,suzumedia,OP18NO5,568,41 42 43
+251,2483,Beethoven,String Quartet No 5 in A major,4. Allegro,String Quartet,Pascal String Quartet,suzumedia,OP18NO5,367,41 42 43
+252,2486,Beethoven,Piano Sonata No 4 in E-flat major,"2. Largo, con gran espressione",Solo Piano,Paul Pitman,piano-midi.de,OP7,448,1
+253,2487,Beethoven,Piano Sonata No 4 in E-flat major,3. Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP7,339,1
+254,2488,Beethoven,Piano Sonata No 4 in E-flat major,4. Rondo: Poco allegretto e grazioso,Solo Piano,Paul Pitman,piano-midi.de,OP7,441,1
+255,2490,Beethoven,Piano Sonata No 4 in E-flat major,"2. Largo, con gran espressione",Solo Piano,Konstantin Semilakovs,piano-midi.de,OP7,519,1
+256,2491,Beethoven,Piano Sonata No 4 in E-flat major,3. Allegro,Solo Piano,Konstantin Semilakovs,piano-midi.de,OP7,331,1
+257,2492,Beethoven,Piano Sonata No 4 in E-flat major,4. Rondo: Poco allegretto e grazioso,Solo Piano,Konstantin Semilakovs,piano-midi.de,OP7,480,1
+258,2494,Beethoven,String Quartet No 11 in F minor,1. Allegro con brio,String Quartet,Pascal String Quartet,suzumedia,OP95,297,41 42 43
+259,2497,Beethoven,String Quartet No 11 in F minor,4. Larghetto espressivo; Allegretto agitato; Allegro,String Quartet,Pascal String Quartet,suzumedia,OP95,294,41 42 43
+260,2501,Beethoven,Violin Sonata No 3 in E-flat major,2. Adagio con molta espressione,Accompanied Violin,Sayuri Yano,Darren L. Slider,OP12NO3,367,1 41
+261,2502,Beethoven,Violin Sonata No 3 in E-flat major,3. Rondo: Allegro molto,Accompanied Violin,Sayuri Yano,Darren L. Slider,OP12NO3,267,1 41
+262,2504,Beethoven,Octet in E-flat major for Winds,1. Allegro,Wind Octet,Soni Ventorum,Oliver Seely,OP103,460,61 69 71 72
+263,2505,Beethoven,Octet in E-flat major for Winds,2. Andante,Wind Octet,Soni Ventorum,Oliver Seely,OP103,489,61 69 71 72
+264,2506,Beethoven,Octet in E-flat major for Winds,3. Menuetto,Wind Octet,Soni Ventorum,Oliver Seely,OP103,187,61 69 71 72
+265,2507,Beethoven,Octet in E-flat major for Winds,4. Presto,Wind Octet,Soni Ventorum,Oliver Seely,OP103,217,61 69 71 72
+266,2509,Beethoven,Piano Sonata No 2 in A major,1. Allegro vivace,Solo Piano,Paul Pitman,piano-midi.de,OP2NO2,484,1
+267,2510,Beethoven,Piano Sonata No 2 in A major,2. Largo appassionato,Solo Piano,Paul Pitman,piano-midi.de,OP2NO2,452,1
+268,2512,Beethoven,Piano Sonata No 2 in A major,4. Rondo: Grazioso,Solo Piano,Paul Pitman,piano-midi.de,OP2NO2,423,1
+269,2514,Beethoven,Piano Sonata No 2 in A major,2. Largo appassionato,Solo Piano,Michael Sikich,piano-midi.de,OP2NO2,405,1
+270,2516,Beethoven,Piano Sonata No 2 in A major,4. Rondo: Grazioso,Solo Piano,Michael Sikich,piano-midi.de,OP2NO2,387,1
+271,2521,Beethoven,Cello Sonata No. 3 in A major,1. Allegro ma non tanto,Accompanied Cello,Hielko Ubels,suzumedia,OP69,751,1 43
+272,2522,Beethoven,Cello Sonata No. 3 in A major,2. Scherzo. Allegro molto,Accompanied Cello,Hielko Ubels,suzumedia,OP69,363,1 43
+273,2523,Beethoven,Cello Sonata No. 3 in A major,3. Adagio cantabile - Allegro vivace,Accompanied Cello,Hielko Ubels,suzumedia,OP69,558,1 43
+274,2527,Beethoven,Piano Sonata No 5 in C minor,1. Allegro molto e con brio,Solo Piano,Paul Pitman,piano-midi.de,OP10NO1,386,1
+275,2528,Beethoven,Piano Sonata No 5 in C minor,2. Adagio molto,Solo Piano,Paul Pitman,piano-midi.de,OP10NO1,463,1
+276,2529,Beethoven,Piano Sonata No 5 in C minor,3. Finale: Prestissimo,Solo Piano,Paul Pitman,piano-midi.de,OP10NO1,275,1
+277,2530,Beethoven,Piano Sonata No 20 in C minor,1. Maestoso - Allegro con brio ed appassionato,Solo Piano,Paul Pitman,piano-midi.de,OP111,562,1
+278,2531,Beethoven,Piano Sonata No 20 in C minor,2. Arietta: Adagio,Solo Piano,Paul Pitman,piano-midi.de,OP111,992,1
+279,2532,Beethoven,Piano Sonata No 20 in C minor,1. Maestoso - Allegro con brio ed appassionato,Solo Piano,Neal O’Doan,piano-midi.de,OP111,548,1
+280,2533,Beethoven,Piano Sonata No 20 in C minor,2. Arietta: Adagio,Solo Piano,Neal O’Doan,piano-midi.de,OP111,1067,1
+281,2537,Beethoven,Piano Sonata No 20 in G major,1. Allegro ma non troppo,Solo Piano,Paul Pitman,piano-midi.de,OP49NO2,286,1
+282,2538,Beethoven,Piano Sonata No 20 in G major,2. Tempo di Menuetto,Solo Piano,Paul Pitman,piano-midi.de,OP49NO2,212,1
+283,2540,Beethoven,Piano Sonata No 28 in A major,1. Etwas lebhaft und mit der innigsten Empfindung,Solo Piano,Paul Pitman,piano-midi.de,OP101,263,1
+284,2542,Beethoven,Piano Sonata No 28 in A major,3. Langsam und sehnsuchtsvoll,Solo Piano,Paul Pitman,piano-midi.de,OP101,650,1
+285,2550,Beethoven,Piano Sonata No 24 in F-sharp major,2. Allegro vivace,Solo Piano,Paul Pitman,piano-midi.de,OP78,180,1
+286,2555,Beethoven,Piano Sonata No 30 in E major,1. Vivace ma non troppo / Adagio espresivo,Solo Piano,Paul Pitman,piano-midi.de,OP109,223,1
+287,2556,Beethoven,Piano Sonata No 30 in E major,2. Prestissimo,Solo Piano,Paul Pitman,piano-midi.de,OP109,151,1
+288,2557,Beethoven,Piano Sonata No 30 in E major,"3. Gesangvoll, mit innigster Empfindung",Solo Piano,Paul Pitman,piano-midi.de,OP109,762,1
+289,2560,Beethoven,String Quartet No 2 in G major,2. Adagio cantabile - Allegro - Tempo I,String Quartet,Pascal String Quartet,suzumedia,OP18NO2,379,41 42 43
+290,2562,Beethoven,String Quartet No 2 in G major,"4. Allegro molto, quasi presto",String Quartet,Pascal String Quartet,suzumedia,OP18NO2,330,41 42 43
+291,2564,Beethoven,Piano Sonata No 11 in B-flat major,2. Adagio con molto espressione,Solo Piano,Paul Pitman,piano-midi.de,OP22,553,1
+292,2566,Beethoven,Piano Sonata No 11 in B-flat major,4. Rondo: Allegretto,Solo Piano,Paul Pitman,piano-midi.de,OP22,405,1
+293,2567,Beethoven,Piano Sonata No 27 in E minor,1. Mit Lebhaftigkeit und durchaus mit Empfindung und Ausdruck,Solo Piano,Paul Pitman,piano-midi.de,OP90,387,1
+294,2568,Beethoven,Piano Sonata No 27 in E minor,2. Nicht zu geschwind und sehr singbar vorgetragen,Solo Piano,Paul Pitman,piano-midi.de,OP90,478,1
+295,2570,Beethoven,Violin Sonata No 7 in C minor,1. Allegro con brio,Accompanied Violin,Chris Borovas,Darren L. Slider,OP30NO2,507,1 41
+296,2571,Beethoven,Violin Sonata No 7 in C minor,2. Adagio cantibile,Accompanied Violin,Chris Borovas,Darren L. Slider,OP30NO2,540,1 41
+297,2572,Beethoven,Violin Sonata No 7 in C minor,3. Scherzo: Allegro,Accompanied Violin,Chris Borovas,Darren L. Slider,OP30NO2,201,1 41
+298,2573,Beethoven,Violin Sonata No 7 in C minor,4. Finale: Allegro; Presto,Accompanied Violin,Chris Borovas,Darren L. Slider,OP30NO2,340,1 41
+299,2575,Beethoven,Piano Sonata No 8 in C minor,2. Adagio cantabile,Solo Piano,Paul Pitman,piano-midi.de,OP13,303,1
+300,2576,Beethoven,Piano Sonata No 8 in C minor,3. Rondo: Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP13,279,1
+301,2581,Beethoven,Piano Sonata No 22 in F major,1. tempo d un menuetto,Solo Piano,Paul Pitman,piano-midi.de,OP54,345,1
+302,2582,Beethoven,Piano Sonata No 22 in F major,2. Allegretto - Piu allegro,Solo Piano,Paul Pitman,piano-midi.de,OP54,398,1
+303,2586,Beethoven,Cello Sonata No. 4 in C major,2. Adagio - Tempo d andante - Allegro vivace,Accompanied Cello,John Michel,suzumedia,OP102NO1,429,1 43
+304,2588,Beethoven,Piano Sonata No 12 in A-flat major,1. Andante con variazioni,Solo Piano,Paul Pitman,piano-midi.de,OP26,522,1
+305,2590,Beethoven,Piano Sonata No 12 in A-flat major,3. Maestoso andante,Solo Piano,Paul Pitman,piano-midi.de,OP26,390,1
+306,2591,Beethoven,Piano Sonata No 12 in A-flat major,4. Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP26,179,1
+307,2593,Beethoven,Piano Sonata No 18 in E-flat major,1. Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP31NO3,512,1
+308,2594,Beethoven,Piano Sonata No 18 in E-flat major,2. Scherzo: Allegretto vivace,Solo Piano,Paul Pitman,piano-midi.de,OP31NO3,319,1
+309,2595,Beethoven,Piano Sonata No 18 in E-flat major,3. Menuetto. Moderato e grazioso,Solo Piano,Paul Pitman,piano-midi.de,OP31NO3,307,1
+310,2596,Beethoven,Piano Sonata No 18 in E-flat major,4. Presto,Solo Piano,Paul Pitman,piano-midi.de,OP31NO3,325,1
+311,2603,Beethoven,Piano Sonata No 26 in E-flat major,1. Das Lebewohl,Solo Piano,Shuwen Zhang,piano-midi.de,OP81NO1,418,1
+312,2607,Beethoven,Piano Sonata No 16 in G major,2. Adagio grazioso,Solo Piano,Paul Pitman,piano-midi.de,OP31NO1,673,1
+313,2608,Beethoven,Piano Sonata No 16 in G major,"3. Rondo, allegretto - presto",Solo Piano,Paul Pitman,piano-midi.de,OP31NO1,390,1
+314,2611,Beethoven,Piano Sonata No 7 in D major,2. Largo e mesto,Solo Piano,Paul Pitman,piano-midi.de,OP10NO3,563,1
+315,2614,Beethoven,Piano Sonata No 7 in D major,2. Largo e mesto,Solo Piano,Peter Bradley-Fulgoni,piano-midi.de,OP10NO3,635,1
+316,2618,Beethoven,Piano Sonata No 6 in F major,1. Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP10NO2,364,1
+317,2619,Beethoven,Piano Sonata No 6 in F major,2. Allegretto,Solo Piano,Paul Pitman,piano-midi.de,OP10NO2,238,1
+318,2620,Beethoven,Piano Sonata No 6 in F major,3. Presto,Solo Piano,Paul Pitman,piano-midi.de,OP10NO2,159,1
+319,2621,Beethoven,String Quartet No 7 in F major,1. Allegro,String Quartet,European Archive,suzumedia,OP59NO1,648,41 42 43
+320,2622,Beethoven,String Quartet No 7 in F major,2. Allegretto vivace e sempre scherzando,String Quartet,European Archive,suzumedia,OP59NO1,507,41 42 43
+321,2626,Beethoven,Violin Sonata No 10 in G major,1. Allegro moderato,Accompanied Violin,Irrera Brothers,suzumedia,OP96,593,1 41
+322,2627,Beethoven,Violin Sonata No 10 in G major,2. Adagio espressivo,Accompanied Violin,Irrera Brothers,suzumedia,OP96,323,1 41
+323,2628,Beethoven,Violin Sonata No 10 in G major,3. Scherzo: Allegro - Trio,Accompanied Violin,Irrera Brothers,suzumedia,OP96,124,1 41
+324,2629,Beethoven,Violin Sonata No 10 in G major,4. Poco allegretto,Accompanied Violin,Irrera Brothers,suzumedia,OP96,517,1 41
+325,2632,Beethoven,Piano Sonata No 10 in G major,2. Andante,Solo Piano,Paul Pitman,piano-midi.de,OP14NO2,341,1
+326,2633,Beethoven,Piano Sonata No 10 in G major,3. Scherzo: Allegro assai,Solo Piano,Paul Pitman,piano-midi.de,OP14NO2,227,1
+327,2659,Bach,Violin Partita No 1 in B minor,6. Double,Solo Violin,John Garner,suzumidi,BWV1002,108,41
+328,2677,Beethoven,Piano Sonata No 9 in E major,1. Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP14NO1,445,1
+329,2678,Beethoven,Piano Sonata No 10 in G major,1. Allegro,Solo Piano,Paul Pitman,piano-midi.de,OP14NO2,472,1
