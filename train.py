@@ -67,9 +67,9 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     n_weight = 3 if HOP_LENGTH == 512 else 2
     # train_data_path = '/disk4/ben/UnalignedSupervision/NoteEM_audio'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_labels'
-    dataset_name = 'no_solo_group1'
-    train_data_path = f'/vol/scratch/jonathany/{dataset_name}/noteEM_audio'
-    labels_path = f'/vol/scratch/jonathany/{dataset_name}/NoteEm_labels'
+    dataset_name = 'no_solo_group3'
+    train_data_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/noteEM_audio'
+    labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/NoteEm_labels'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
 
     os.makedirs(labels_path, exist_ok=True)
@@ -104,12 +104,13 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
     #####
     if not multi_ckpt:
-        model_complexity = 64 if '64' in transcriber_ckpt else 48
+        model_complexity = 48 if '48' in transcriber_ckpt else 64
+        onset_complexity = 1.5 if '70' in transcriber_ckpt else 1.0
         saved_transcriber = torch.load(transcriber_ckpt).cpu()
         # We create a new transcriber with N_KEYS classes for each instrument:
         transcriber = OnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
                                               model_complexity,
-                                    onset_complexity=1., n_instruments=len(dataset.instruments) + 1).to(device)
+                                    onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + 1).to(device)
         # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
         load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
     else:
@@ -220,10 +221,9 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
 
 if __name__ == '__main__':
-    run_name = "no_solo_group1"
+    run_name = "no_solo_group1_model_70"
     logdir = f"/vol/scratch/jonathany/runs/{run_name}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
-    transcriber_ckpt = '/vol/scratch/jonathany/ckpts/model_64.pt'
-    # transcriber_ckpt = 'ckpts/model_64.pt'
+    transcriber_ckpt = 'ckpts/model-70.pt'
     multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
 
     # transcriber_ckpt = 'ckpts/'
