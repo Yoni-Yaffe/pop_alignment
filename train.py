@@ -67,7 +67,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     n_weight = 3 if HOP_LENGTH == 512 else 2
     # train_data_path = '/disk4/ben/UnalignedSupervision/NoteEM_audio'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_labels'
-    dataset_name = 'no_solo_group3'
+    dataset_name = 'full_musicnet'
     train_data_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/noteEM_audio'
     labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/NoteEm_labels'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
@@ -81,7 +81,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                  f"epochs: {epochs}, transcriber_ckpt: {transcriber_ckpt}, multi_ckpt: {multi_ckpt}, n_weight: {n_weight}\n")
     # train_groups = ['Bach Brandenburg Concerto 1 A']
     # train_groups = ['MusicNetSamples', 'new_samples']
-    train_groups = [dataset_name]
+    train_groups = ["no_solo_group1", "no_solo_group2", "no_solo_group3"]
 
     conversion_map = None
     if 'pop' in dataset_name:
@@ -166,7 +166,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
         loader_cycle = cycle(loader)
         time_start = time.time()
-        for _ in tqdm(range(iterations)):
+        for iteration in tqdm(range(iterations)):
             curr_loader = loader_cycle
             batch = next(curr_loader)
             optimizer.zero_grad()
@@ -198,14 +198,28 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             total_loss.append(loss.item())
             print(f"loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision: {onset_precision:.2f} Onset Recall {onset_recall:.2f} "
                   f"Pitch Onset Precision: {pitch_onset_precision:.2f} Pitch Onset Recall {pitch_onset_recall:.2f}")
+            if epochs == 1 and iteration % 20000 == 1:
+                torch.save(transcriber, os.path.join(logdir, 'transcriber_iteration_{}.pt'.format(iteration)))
+                torch.save(optimizer.state_dict(), os.path.join(logdir, 'last-optimizer-state.pt'))
+                torch.save({'instrument_mapping': dataset.instruments},
+                       os.path.join(logdir, 'instrument_mapping.pt'.format(iteration)))
+            
+            if epochs == 1 and iteration % 10000 == 1:
+                score_msg = f"iteration {iteration:06d} loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision:  {onset_precision:.2f} " \
+                    f"Onset Recall {onset_recall:.2f} Pitch Onset Precision:  {pitch_onset_precision:.2f} " \
+                    f"Pitch Onset Recall  {pitch_onset_recall:.2f}\n"
+                with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
+                    fp.write(score_msg)
+
+
 
         time_end = time.time()
-        score_msg = f"epoch {epoch} loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision:  {onset_precision:.2f} " \
+        score_msg = f"epoch {epoch:02d} loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision:  {onset_precision:.2f} " \
                     f"Onset Recall {onset_recall:.2f} Pitch Onset Precision:  {pitch_onset_precision:.2f} " \
                     f"Pitch Onset Recall  {pitch_onset_recall:.2f} time label update: {time.strftime('%M:%S', time.gmtime(time_end - time_start))}\n"
 
         save_condition = epoch % checkpoint_interval == 1
-        if save_condition:
+        if save_condition and epochs != 1:
             torch.save(transcriber, os.path.join(logdir, 'transcriber_{}.pt'.format(epoch)))
             torch.save(optimizer.state_dict(), os.path.join(logdir, 'last-optimizer-state.pt'))
             torch.save({'instrument_mapping': dataset.instruments},
@@ -221,7 +235,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
 
 if __name__ == '__main__':
-    run_name = "no_solo_group1_model_70"
+    run_name = "all_musicnet_model_70"
     logdir = f"/vol/scratch/jonathany/runs/{run_name}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
     transcriber_ckpt = 'ckpts/model-70.pt'
     multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
@@ -234,11 +248,11 @@ if __name__ == '__main__':
     batch_size = 8
     sequence_length = SEQ_LEN if HOP_LENGTH == 512 else 3 * SEQ_LEN // 4
 
-    iterations = 1000 # per epoch
+    iterations = 100000 # per epoch
     learning_rate = 0.0001
     learning_rate_decay_steps = 10000
     clip_gradient_norm = 3
-    epochs = 15
+    epochs = 1
 
     train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
           clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt)
