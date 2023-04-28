@@ -236,7 +236,7 @@ class EMDATASET(Dataset):
         if to_save is not None:
             os.makedirs(to_save, exist_ok=True)
         print('there are', len(self.pts), 'pts')
-        for flac, data in self.pts.items():
+        for flac, data in tqdm(self.pts.items()):
             if 'unaligned_label' not in data:
                 continue
             audio_inp = data['audio'].float() / 32768.
