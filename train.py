@@ -65,11 +65,12 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     # print_config(ex.current_run)
     os.makedirs(logdir, exist_ok=True)
     n_weight = 3 if HOP_LENGTH == 512 else 2
+    # group = "group9"
     # train_data_path = '/disk4/ben/UnalignedSupervision/NoteEM_audio'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_labels'
-    dataset_name = 'full_musicnet'
+    dataset_name = 'full_musicnet_groups_of_20'
     train_data_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/noteEM_audio'
-    labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/NoteEm_labels'
+    labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}//NoteEm_labels'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
 
     os.makedirs(labels_path, exist_ok=True)
@@ -81,7 +82,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                  f"epochs: {epochs}, transcriber_ckpt: {transcriber_ckpt}, multi_ckpt: {multi_ckpt}, n_weight: {n_weight}\n")
     # train_groups = ['Bach Brandenburg Concerto 1 A']
     # train_groups = ['MusicNetSamples', 'new_samples']
-    train_groups = ["no_solo_group1", "no_solo_group2", "no_solo_group3"]
+    train_groups = [f'group{i}' for i in range(1, 10)]
 
     conversion_map = None
     if 'pop' in dataset_name:
@@ -230,12 +231,11 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     total_run_2 = time.time()
     with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
         fp.write(f"Total Runtime: {time.strftime('%H:%M:%S', time.gmtime(total_run_2 - total_run_1))}\n")
-    shutil.copy("slurmlog.out", os.path.join(logdir, "full_log_slurm.txt"))
+    shutil.copy(f"slurm_logs/slurmlog.out", os.path.join(logdir, "full_log_slurm.txt"))
     
 
-
 if __name__ == '__main__':
-    run_name = "all_musicnet_model_70"
+    run_name = "full_musicnet_groups_of_20"
     logdir = f"/vol/scratch/jonathany/runs/{run_name}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
     transcriber_ckpt = 'ckpts/model-70.pt'
     multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
@@ -248,11 +248,14 @@ if __name__ == '__main__':
     batch_size = 8
     sequence_length = SEQ_LEN if HOP_LENGTH == 512 else 3 * SEQ_LEN // 4
 
-    iterations = 100000 # per epoch
+    iterations = 1000 # per epoch
+    # iterations = 100_000
     learning_rate = 0.0001
     learning_rate_decay_steps = 10000
     clip_gradient_norm = 3
-    epochs = 1
+    epochs = 15
+    # epochs = 1
 
     train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
           clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt)
+    
