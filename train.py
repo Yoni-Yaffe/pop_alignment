@@ -239,6 +239,11 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     total_run_2 = time.time()
     with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
         fp.write(f"Total Runtime: {time.strftime('%H:%M:%S', time.gmtime(total_run_2 - total_run_1))}\n")
+    
+    # keep last optimized state
+    torch.save(optimizer.state_dict(), os.path.join(logdir, 'last-optimizer-state.pt'))
+    torch.save({'instrument_mapping': dataset.instruments},
+                       os.path.join(logdir, 'instrument_mapping.pt'.format(epoch)))
     # shutil.copy(f"slurm_logs/slurmlog.out", os.path.join(logdir, "full_log_slurm.txt"))
     
 
