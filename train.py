@@ -142,16 +142,20 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         POS = 1.1 # Pseudo-label positive threshold (value > 1 means no pseudo label).
         NEG = -0.1 # Pseudo-label negative threshold (value < 0 means no pseudo label).
         # POS = 0.7 # Pseudo-label positive threshold (value > 1 means no pseudo label).
-        # NEG = -0.1 # Pseudo-label negative threshold (value < 0 means no pseudo label).
-        with torch.no_grad():
-            dataset.update_pts(parallel_transcriber,
-                               POS=POS,
-                               NEG=NEG,
-                               to_save=logdir + '/alignments', # MIDI alignments and predictions will be saved here
-                               first=epoch == 1,
-                               update=True,
-                               BEST_BON=epoch > 5  # after 5 epochs, update label only if bag of notes distance improved
-                               )
+        # NEG = -0.1 # Pseudo-label negative threshold (value < 0 means no pseudo label). 
+        
+        # if epoch == 1 we do not want to make alignment
+        if epochs > 1:
+            with torch.no_grad():
+                
+                dataset.update_pts(parallel_transcriber,
+                                POS=POS,
+                                NEG=NEG,
+                                to_save=logdir + '/alignments', # MIDI alignments and predictions will be saved here
+                                first=epoch == 1,
+                                update=True,
+                                BEST_BON=epoch > 5  # after 5 epochs, update label only if bag of notes distance improved
+                                )
         loader = DataLoader(dataset, batch_size, shuffle=True, drop_last=True)
 
         total_loss = []
@@ -235,7 +239,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     
 
 if __name__ == '__main__':
-    run_name = "full_musicnet_groups_of_20"
+    run_name = "full_musicnet_group_of_20_no_alignment"
     logdir = f"/vol/scratch/jonathany/runs/{run_name}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
     transcriber_ckpt = 'ckpts/model-70.pt'
     multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
@@ -248,13 +252,13 @@ if __name__ == '__main__':
     batch_size = 8
     sequence_length = SEQ_LEN if HOP_LENGTH == 512 else 3 * SEQ_LEN // 4
 
-    iterations = 1000 # per epoch
-    # iterations = 100_000
+    # iterations = 1000 # per epoch
+    iterations = 100_000
     learning_rate = 0.0001
     learning_rate_decay_steps = 10000
     clip_gradient_norm = 3
-    epochs = 15
-    # epochs = 1
+    # epochs = 15
+    epochs = 1
 
     train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
           clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt)

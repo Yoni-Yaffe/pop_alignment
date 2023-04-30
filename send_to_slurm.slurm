@@ -10,7 +10,7 @@
 #SBATCH --ntasks=1 # number of processes
 #SBATCH --mem=50000 # CPU memory (MB)
 #SBATCH --cpus-per-task=8 # CPU cores per process
-#SBATCH --gpus=1 # GPUs in tota
+#SBATCH --gpus=2 # GPUs in tota
 #SBATCH --constraint=titan_xp
 
 ./run_train

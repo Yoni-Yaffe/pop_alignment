@@ -215,7 +215,8 @@ class EMDATASET(Dataset):
                 midi = np.loadtxt(tsv, delimiter='\t', skiprows=1)
                 unaligned_label = midi_to_frames(midi, self.instruments, conversion_map=self.conversion_map)
                 data = dict(path=self.labels_path + os.sep + flac.split(os.sep)[-1],
-                            audio=audio, unaligned_label=unaligned_label)
+                            audio=audio, unaligned_label=unaligned_label,
+                            label=unaligned_label)
                 torch.save(data, self.labels_path + os.sep + flac.split(os.sep)[-1]
                                .replace('.flac', '.pt').replace('.mp3', '.pt'))
                 self.pts[flac] = data
