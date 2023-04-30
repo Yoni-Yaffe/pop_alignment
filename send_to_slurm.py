@@ -1,14 +1,22 @@
 import os
 import yaml
-
+from datetime import datetime
 
 if __name__ == "__main__":
-    with open("slurm_config.yaml", 'r') as fp:
+    with open("config.yaml", 'r') as fp:
         config = yaml.load(fp)
+    slurm_config = config['slurm_params']
     sbatch_command = 'sbatch'
-    for param in config:
-        sbatch_command += f' --{param}={config[param]}'
-    sbatch_command += ' /specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train2'
+    logdir = f"/vol/scratch/jonathany/runs/{config['run_name']}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
+    config['logdir'] = logdir
+    slurm_config['output'] = os.path.join(logdir, slurm_config['output'])
+    slurm_config['error'] = os.path.join(logdir, slurm_config['error'])
+    os.makedirs(logdir, exist_ok=True)
+    with open(os.path.join(logdir, 'run_config.yaml'), 'w') as fp:
+        yaml.dump(config, fp)
+    
+    for param in slurm_config:
+        sbatch_command += f' --{param}={slurm_config[param]}'
+    sbatch_command += f" {config['command']} {logdir}"
     os.system(sbatch_command)
-    print("submitted task")
-    # print(sbatch_command)
+    

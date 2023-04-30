@@ -1,5 +1,5 @@
 #!/bin/bash
 python -V
 /vol/scratch/jonathany/venv_test/bin/python -V
-/vol/scratch/jonathany/venv_test/bin/python train.py
+/vol/scratch/jonathany/venv_test/bin/python train.py "$@"
 echo Finished

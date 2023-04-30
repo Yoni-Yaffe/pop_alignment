@@ -13,8 +13,10 @@ from onsets_and_frames.dataset import EMDATASET
 from torch.nn import DataParallel
 from onsets_and_frames.transcriber import load_weights
 import time
-import shutil
 import pop_conversion_map
+import sys
+import yaml
+
 
 def set_diff(model, diff=True):
     for layer in model.children():
@@ -26,26 +28,26 @@ ex = Experiment('train_transcriber')
 
 
 
-def config():
-    logdir = 'runs/transcriber-' + datetime.now().strftime('%y%m%d-%H%M%S') # ckpts and midi will be saved here
-    transcriber_ckpt = 'ckpts/model_512.pt'
-    multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
+# def config():
+#     logdir = 'runs/transcriber-' + datetime.now().strftime('%y%m%d-%H%M%S') # ckpts and midi will be saved here
+#     transcriber_ckpt = 'ckpts/model_512.pt'
+#     multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
 
-    # transcriber_ckpt = 'ckpts/'
-    # multi_ckpt = True
+#     # transcriber_ckpt = 'ckpts/'
+#     # multi_ckpt = True
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    checkpoint_interval = 6 # how often to save checkpoint
-    batch_size = 8
-    sequence_length = SEQ_LEN #if HOP_LENGTH == 512 else 3 * SEQ_LEN // 4
+#     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#     checkpoint_interval = 6 # how often to save checkpoint
+#     batch_size = 8
+#     sequence_length = SEQ_LEN #if HOP_LENGTH == 512 else 3 * SEQ_LEN // 4
 
-    iterations = 1000 # per epoch
-    learning_rate = 0.0001
-    learning_rate_decay_steps = 10000
-    clip_gradient_norm = False #3
-    epochs = 15
+#     iterations = 1000 # per epoch
+#     learning_rate = 0.0001
+#     learning_rate_decay_steps = 10000
+#     clip_gradient_norm = False #3
+#     epochs = 15
 
-    ex.observers.append(FileStorageObserver.create(logdir))
+#     ex.observers.append(FileStorageObserver.create(logdir))
 
 def append_to_file(path, msg):
     with open(path, 'a') as fp:
@@ -53,7 +55,7 @@ def append_to_file(path, msg):
 
 
 def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
-          clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt):
+          clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt, config):
     # Place holders
     onset_precision = None
     onset_recall = None
@@ -63,14 +65,16 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     total_run_1 = time.time()
     print(f"device {device}")
     # print_config(ex.current_run)
-    os.makedirs(logdir, exist_ok=True)
+    # os.makedirs(logdir, exist_ok=True)
     n_weight = 3 if HOP_LENGTH == 512 else 2
     # group = "group9"
     # train_data_path = '/disk4/ben/UnalignedSupervision/NoteEM_audio'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_labels'
-    dataset_name = 'full_musicnet_groups_of_20'
+    # dataset_name = 'full_musicnet_groups_of_20'
+    dataset_name = config['dataset_name']
     train_data_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/noteEM_audio'
-    labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}//NoteEm_labels'
+    # labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}//NoteEm_labels'
+    labels_path = os.path.join(logdir, 'NoteEm_labels')
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
 
     os.makedirs(labels_path, exist_ok=True)
@@ -235,31 +239,52 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     total_run_2 = time.time()
     with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
         fp.write(f"Total Runtime: {time.strftime('%H:%M:%S', time.gmtime(total_run_2 - total_run_1))}\n")
-    shutil.copy(f"slurm_logs/slurmlog.out", os.path.join(logdir, "full_log_slurm.txt"))
+    # shutil.copy(f"slurm_logs/slurmlog.out", os.path.join(logdir, "full_log_slurm.txt"))
     
 
 if __name__ == '__main__':
-    run_name = "full_musicnet_group_of_20_no_alignment"
-    logdir = f"/vol/scratch/jonathany/runs/{run_name}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
-    transcriber_ckpt = 'ckpts/model-70.pt'
-    multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
-
+    if len(sys.argv) == 1:
+        yaml_path = 'config.yaml'
+    else:
+        logdir = sys.argv[1]
+        yaml_path = os.path.join(logdir, 'run_config.yaml')
+    
+    with open(yaml_path, 'r') as fp:
+        yaml_config = yaml.load(fp, Loader=yaml.FullLoader)
+        
+    if 'logdir' not in yaml_config:
+        print('did not find a log dir')
+        logdir = f"/vol/scratch/jonathany/runs/{yaml_config['run_name']}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
+        os.makedirs(logdir, exist_ok=True)
+    # transcriber_ckpt = 'ckpts/model-70.pt'
+    # multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
+    config = yaml_config['train_params']
+    transcriber_ckpt = config['transcriber_ckpt']
+    multi_ckpt = config['multi_ckpt']
+    checkpoint_interval = config['checkpoint_interval']
+    batch_size = config['batch_size']
+    iterations = config['iterations']
+    learning_rate = config['learning_rate']
+    learning_rate_decay_steps = config['learning_rate_decay_steps']
+    clip_gradient_norm = config['clip_gradient_norm']
+    epochs = config['epochs']
+    
     # transcriber_ckpt = 'ckpts/'
     # multi_ckpt = True
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    checkpoint_interval = 6 # how often to save checkpoint
-    batch_size = 8
+    # checkpoint_interval = 6 # how often to save checkpoint
+    # batch_size = 8
     sequence_length = SEQ_LEN if HOP_LENGTH == 512 else 3 * SEQ_LEN // 4
 
     # iterations = 1000 # per epoch
-    iterations = 100_000
-    learning_rate = 0.0001
-    learning_rate_decay_steps = 10000
-    clip_gradient_norm = 3
+    # iterations = 100_000
+    # learning_rate = 0.0001
+    # learning_rate_decay_steps = 10000
+    # clip_gradient_norm = 3
     # epochs = 15
-    epochs = 1
+    # epochs = 1
 
     train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
-          clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt)
+          clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt, config)
     
