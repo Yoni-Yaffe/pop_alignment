@@ -54,19 +54,26 @@ def create_new_midi_dirs_per_group(old_midis_dir_path: str, new_midis_dir_path: 
             if not file.endswith('.mid'):
                 continue
             song_id = file.split('#')[0]
+            song_id = song_id.split('.mid')[0]
+            if song_id not in song_to_group_dict:
+                continue
             group = song_to_group_dict[song_id]
             destination = os.path.join(new_midis_dir_path, f"group{group}", file)
             source = os.path.join(root, file)
             shutil.copy(source, destination)
     print("created new midis dir")
       
-
+def create_sym_links_for_audio():
+    src_dir = "/vol/scratch/jonathany/datasets/musicnet_groups_of_20/noteEM_audio"
+    dst_dir = "/vol/scratch/jonathany/datasets/musicnet_em_grouped/noteEM_audio"
+    for d in os.listdir(src_dir):
+        os.symlink(os.path.join(src_dir, d), os.path.join(dst_dir, 'em_' + d))
 
 if __name__ == "__main__":
     # song_list = list_all_songs_in_dir("/vol/scratch/jonathany/datasets/full_musicnet/noteEM_audio")
     # split_song_list_to_groups(song_list, 20)
     # create_new_noteEM_directory("/vol/scratch/jonathany/datasets/full_musicnet/noteEM_audio", "/vol/scratch/jonathany/datasets/musicnet_groups_of_20/noteEM_audio", 20)
-    old_path = "/vol/scratch/jonathany/datasets/full_musicnet"
-    new_path = "/vol/scratch/jonathany/datasets/musicnet_groups_of_20/midis"
+    old_path = "/vol/scratch/jonathany/datasets/musicnet_em"
+    new_path = "/vol/scratch/jonathany/datasets/musicnet_em_grouped"
     groups_json_path = "/vol/scratch/jonathany/datasets/musicnet_groups_of_20/noteEM_audio/song_to_group_dict.json"
-    create_new_midi_dirs_per_group(old_path, new_path, groups_json_path)
+    # create_new_midi_dirs_per_group(old_path, new_path, groups_json_path)

@@ -1,14 +1,14 @@
 slurm_params:
   job-name: "alignment_model"
-  output: "slurmlog22.out" # redirect stdout
-  error: "slurmlog22.err" # redirect stderr
+  output: "slurmlog.out" # redirect stdout
+  error: "slurmlog.err" # redirect stderr
   partition: studentkillable # (see resources section)
   time: "1440" # max time (minutes)
   signal: "USR1@120" # how to end job when time�s up
   nodes: "1" # number of machines
   ntasks: "1" # number of processes
   mem: "50000" # CPU memory (MB)
-  cpus-per-task: "4" # CPU cores per process
+  cpus-per-task: "8" # CPU cores per process
   gpus: "2" # GPUs in tota
   constraint: "titan_xp"
 
@@ -20,14 +20,16 @@ train_params:
   batch_size: 8
 
   # iterations = 1000 # per epoch
-  iterations: 1000
+  iterations: 100001
   learning_rate: 0.0001
   learning_rate_decay_steps: 10000
   clip_gradient_norm: 3
   # epochs: 15
   epochs: 1
 
-  dataset_name: "full_musicnet_groups_of_20"
+  # dataset_name: "full_musicnet_groups_of_20"
+  dataset_name: "musicnet_em_grouped"
 
-command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
-run_name: "run_test"
+# command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
+command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_generate_labels"
+run_name: "new_generate_labels"

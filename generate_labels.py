@@ -20,8 +20,11 @@ def load_audio(flac):
 
 def generate_labels(transcriber_ckpt, flac_path):
     inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 43, 45, 6, 60]
+    inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 45, 6, 60]
+
     num_instruments = len(inst_mapping)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"device {device}")
     # model_complexity = 64
     # saved_transcriber = torch.load(transcriber_ckpt).cpu()
     # # We create a new transcriber with N_KEYS classes for each instrument:
@@ -40,30 +43,40 @@ def generate_labels(transcriber_ckpt, flac_path):
     parallel_transcriber = DataParallel(transcriber)
     audio = load_audio(flac_path)
     transcriber.zero_grad()
-
-    audio_inp = audio.float() / 32768.
-    MAX_TIME = 5 * 60 * SAMPLE_RATE
-    audio_inp_len = len(audio_inp)
-    if audio_inp_len > MAX_TIME:
-        n_segments = 3 if audio_inp_len > 2 * MAX_TIME else 2
-        print('long audio, splitting to {} segments'.format(n_segments))
-        seg_len = audio_inp_len // n_segments
-        onsets_preds = []
-        offset_preds = []
-        frame_preds = []
-        vel_preds = []
-        for i_s in range(n_segments):
-            curr = audio_inp[i_s * seg_len: (i_s + 1) * seg_len].unsqueeze(0)  # .cuda()
-            curr_mel = melspectrogram(curr.reshape(-1, curr.shape[-1])[:, :-1]).transpose(-1, -2)
-            curr_onset_pred, curr_offset_pred, _, curr_frame_pred, curr_velocity_pred = parallel_transcriber(curr_mel)
-            onsets_preds.append(curr_onset_pred)
-            offset_preds.append(curr_offset_pred)
-            frame_preds.append(curr_frame_pred)
-            vel_preds.append(curr_velocity_pred)
-        onset_pred = torch.cat(onsets_preds, dim=1)
-        offset_pred = torch.cat(offset_preds, dim=1)
-        frame_pred = torch.cat(frame_preds, dim=1)
-        velocity_pred = torch.cat(vel_preds, dim=1)
+    print("cuda mem info:")
+    print(torch.cuda.mem_get_info())
+    torch.cuda.empty_cache()
+    print("cuda mem info:")
+    print(torch.cuda.mem_get_info())
+    with torch.no_grad():
+        audio_inp = audio.float() / 32768.
+        MAX_TIME = 5 * 60 * SAMPLE_RATE
+        audio_inp_len = len(audio_inp)
+        if audio_inp_len > MAX_TIME:
+            n_segments = 3 if audio_inp_len > 2 * MAX_TIME else 2
+            print('long audio, splitting to {} segments'.format(n_segments))
+            seg_len = audio_inp_len // n_segments
+            onsets_preds = []
+            offset_preds = []
+            frame_preds = []
+            vel_preds = []
+            for i_s in range(n_segments):
+                curr = audio_inp[i_s * seg_len: (i_s + 1) * seg_len].unsqueeze(0).cuda()
+                curr_mel = melspectrogram(curr.reshape(-1, curr.shape[-1])[:, :-1]).transpose(-1, -2)
+                curr_onset_pred, curr_offset_pred, _, curr_frame_pred, curr_velocity_pred = parallel_transcriber(curr_mel)
+                onsets_preds.append(curr_onset_pred)
+                offset_preds.append(curr_offset_pred)
+                frame_preds.append(curr_frame_pred)
+                vel_preds.append(curr_velocity_pred)
+            onset_pred = torch.cat(onsets_preds, dim=1)
+            offset_pred = torch.cat(offset_preds, dim=1)
+            frame_pred = torch.cat(frame_preds, dim=1)
+            velocity_pred = torch.cat(vel_preds, dim=1)
+        else:
+            print("didn't have to split")
+            audio_inp = audio_inp.unsqueeze(0).cuda()
+            mel = melspectrogram(audio_inp.reshape(-1, audio_inp.shape[-1])[:, :-1]).transpose(-1, -2)
+            onset_pred, offset_pred, _, frame_pred, velocity_pred = parallel_transcriber(mel)
 
         onset_pred = onset_pred.detach().squeeze().cpu()
         frame_pred = frame_pred.detach().squeeze().cpu()
@@ -74,15 +87,18 @@ def generate_labels(transcriber_ckpt, flac_path):
         onset_pred_np = onset_pred.numpy()
         frame_pred_np = frame_pred.numpy()
 
-        save_path = 'test_predict.mid'
+        # save_path = 'Champions_League.mid'
+        save_path = 'Westworld.mid'
 
         inst_only = len(inst_mapping) * N_KEYS
         frames2midi(save_path,
                     onset_pred_np[:, : inst_only], frame_pred_np[:, : inst_only],
                     64. * onset_pred_np[:, : inst_only],
                     inst_mapping=inst_mapping)
+        print(f"saved midi to {save_path}")
 
 if __name__ == '__main__':
-    ckpt = 'ckpts/transcriber_iteration_1.pt'
-    flac_path = '1789#0.flac'
+    ckpt = 'ckpts/transcriber_iteration_60001.pt'
+    # flac_path = 'Champions_League#0.flac'
+    flac_path = 'Westworld#0.flac'
     generate_labels(ckpt, flac_path)
