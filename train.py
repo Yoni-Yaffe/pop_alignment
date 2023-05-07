@@ -73,6 +73,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     # dataset_name = 'full_musicnet_groups_of_20'
     dataset_name = config['dataset_name']
     train_data_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/noteEM_audio'
+    print(f"train_data_path: {train_data_path}")
     # labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}//NoteEm_labels'
     labels_path = os.path.join(logdir, 'NoteEm_labels')
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
@@ -86,8 +87,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                  f"epochs: {epochs}, transcriber_ckpt: {transcriber_ckpt}, multi_ckpt: {multi_ckpt}, n_weight: {n_weight}\n")
     # train_groups = ['Bach Brandenburg Concerto 1 A']
     # train_groups = ['MusicNetSamples', 'new_samples']
-    train_groups = [f'group{i}' for i in range(1, 10)]
-
+    # train_groups = [f'em_group{i}' for i in range(1, 10)]
+    # train_groups = ['full_musicnet_with_piano']
+    train_groups = config['groups']
+    
     conversion_map = None
     if 'pop' in dataset_name:
         conversion_map = pop_conversion_map.conversion_map

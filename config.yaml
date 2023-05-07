@@ -26,10 +26,17 @@ train_params:
   clip_gradient_norm: 3
   # epochs: 15
   epochs: 1
+  groups: ["full_musicnet_with_piano"]
 
   # dataset_name: "full_musicnet_groups_of_20"
-  dataset_name: "musicnet_em_grouped"
+  dataset_name: "full_musicnet_with_piano"
+
+inference_params:
+  audio_files_dir: "flac_dir"
+  ckpt: "ckpts/transcriber_iteration_60001.pt"
+
 
 # command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
 command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_generate_labels"
-run_name: "new_generate_labels"
+# run_name: "full_musicnet_with_em_labels"
+run_name: inference_list_test

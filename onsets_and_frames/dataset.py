@@ -56,7 +56,7 @@ class EMDATASET(Dataset):
         self.path = self.audio_path
         tsvs_path = 'NoteEM_tsv'
         res = []
-        good_ids = list(range(2075, 2084))
+        # good_ids = list(range(2075, 2084))
         # good_ids += list(range(1817, 1820))
         # good_ids += list(range(2202, 2205))
         # good_ids += list(range(2415, 2418))
@@ -64,10 +64,16 @@ class EMDATASET(Dataset):
         for group in groups:
             tsvs = os.listdir(tsvs_path + os.sep + group)
             tsvs = sorted(tsvs)
+            tsvs_names = [t.split('.tsv')[0] for t in tsvs]
             for shft in range(-5, 6):
                 curr_fls_pth = self.path + os.sep + group + '#{}'.format(shft)
+                
                 fls = os.listdir(curr_fls_pth)
+                print(f"files names\n {fls}")
+                fls = [i for i in fls if i.split('#')[0] in tsvs_names] # in case we dont have the corresponding midi
+                print(f"files names\n {fls}")
                 fls = sorted(fls)
+                print(list(zip(fls, tsvs)))
                 for f, t in zip(fls, tsvs):
                     # #### MusicNet
                     # if 'MusicNet' in group:
