@@ -56,6 +56,8 @@ def append_to_file(path, msg):
 
 def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
           clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt, config):
+    
+    print(f"config -  {config}")
     # Place holders
     onset_precision = None
     onset_recall = None
@@ -104,7 +106,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                             seed=42,
                            device=DEFAULT_DEVICE,
                             instrument_map=instrument_map,
-                            conversion_map=conversion_map
+                            conversion_map=conversion_map,
+                            pitch_shift=config['pitch_shift']
                         )
     print('len dataset', len(dataset), len(dataset.data))
     append_to_file(score_log_path, f'Dataset instruments: {dataset.instruments}')
@@ -150,7 +153,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         NEG = -0.1 # Pseudo-label negative threshold (value < 0 means no pseudo label).
         # POS = 0.7 # Pseudo-label positive threshold (value > 1 means no pseudo label).
         # NEG = -0.1 # Pseudo-label negative threshold (value < 0 means no pseudo label). 
-        
+        if config['psuedo_labels']:
+            POS = 0.7
         # if epoch == 1 we do not want to make alignment
         if epochs > 1:
             with torch.no_grad():
@@ -178,7 +182,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
         loader_cycle = cycle(loader)
         time_start = time.time()
-        for iteration in tqdm(range(iterations)):
+        for iteration in tqdm(range(1, iterations + 1)):
             curr_loader = loader_cycle
             batch = next(curr_loader)
             optimizer.zero_grad()

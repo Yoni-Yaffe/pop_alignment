@@ -10,7 +10,6 @@ from onsets_and_frames.mel import melspectrogram
 from datetime import datetime
 from onsets_and_frames.midi_utils import *
 from onsets_and_frames.utils import *
-from scipy.spatial.distance import euclidean
 import time
 
 
@@ -20,7 +19,8 @@ class EMDATASET(Dataset):
                  labels_path='NoteEm_labels',
                  groups=None, sequence_length=None, seed=42, device=DEFAULT_DEVICE,
                  instrument_map=None, update_instruments=False, transcriber=None,
-                 conversion_map=None):
+                 conversion_map=None,
+                 pitch_shift=True):
         self.audio_path = audio_path
         self.labels_path = labels_path
         self.sequence_length = sequence_length
@@ -28,7 +28,7 @@ class EMDATASET(Dataset):
         self.random = np.random.RandomState(seed)
         self.groups = groups
         self.conversion_map = conversion_map
-        self.file_list = self.files(self.groups)
+        self.file_list = self.files(self.groups, pitch_shift=pitch_shift)
         if instrument_map is None:
             self.get_instruments(conversion_map=conversion_map)
         else:
@@ -51,7 +51,7 @@ class EMDATASET(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def files(self, groups):
+    def files(self, groups, pitch_shift=True):
         # self.path = 'NoteEM_audio'
         self.path = self.audio_path
         tsvs_path = 'NoteEM_tsv'
@@ -66,6 +66,8 @@ class EMDATASET(Dataset):
             tsvs = sorted(tsvs)
             tsvs_names = [t.split('.tsv')[0] for t in tsvs]
             for shft in range(-5, 6):
+                if shft != 0 and not pitch_shift:
+                    continue
                 curr_fls_pth = self.path + os.sep + group + '#{}'.format(shft)
                 
                 fls = os.listdir(curr_fls_pth)

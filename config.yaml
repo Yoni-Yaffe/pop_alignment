@@ -27,16 +27,18 @@ train_params:
   # epochs: 15
   epochs: 1
   groups: ["full_musicnet_with_piano"]
+  pitch_shift: false
+  psuedo_labels: true
 
   # dataset_name: "full_musicnet_groups_of_20"
   dataset_name: "full_musicnet_with_piano"
 
 inference_params:
-  audio_files_dir: "flac_dir"
-  ckpt: "ckpts/transcriber_iteration_60001.pt"
+  audio_files_dir: "flac_dir/classic_pieces"
+  ckpt: "ckpts/trained_ckpts/transcriber_iteration_60001.pt"
 
 
-# command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
-command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_generate_labels"
-# run_name: "full_musicnet_with_em_labels"
-run_name: inference_list_test
+command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
+# command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_generate_labels"
+run_name: "full_musicnet_with_em_labels_no_pitch_shift_with_psuedo_labels"
+# run_name: inference_classic
