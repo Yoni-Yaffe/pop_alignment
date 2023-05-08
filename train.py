@@ -94,8 +94,9 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     train_groups = config['groups']
     
     conversion_map = None
-    if 'pop' in dataset_name:
+    if config['use_pop_conversion_map']:
         conversion_map = pop_conversion_map.conversion_map
+        
     instrument_map = None
     print("Conversion map:", conversion_map)
     print("Instrument map:", instrument_map)

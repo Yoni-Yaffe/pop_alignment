@@ -29,6 +29,7 @@ train_params:
   groups: ["full_musicnet_with_piano"]
   pitch_shift: false
   psuedo_labels: true
+  use_pop_conversion_map: false
 
   # dataset_name: "full_musicnet_groups_of_20"
   dataset_name: "full_musicnet_with_piano"
