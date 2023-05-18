@@ -11,7 +11,7 @@ from tqdm import tqdm
 from onsets_and_frames import *
 from onsets_and_frames.dataset import EMDATASET
 from torch.nn import DataParallel
-from onsets_and_frames.transcriber import load_weights
+from onsets_and_frames.transcriber import load_weights, load_weights_pop
 import time
 import pop_conversion_map
 import sys
@@ -137,7 +137,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         #                             model_complexity,
         #                             onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + 1).to(device)
         # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
-        load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
+        # load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
+        load_weights_pop(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + prev_instruments)
     else:
         # The checkpoint is already instrument-sensitive
         transcriber = torch.load(transcriber_ckpt).to(device)

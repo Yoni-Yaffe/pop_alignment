@@ -20,19 +20,20 @@ train_params:
   batch_size: 8
 
   # iterations = 1000 # per epoch
-  iterations: 100001
+  iterations: 1001
   learning_rate: 0.0001
   learning_rate_decay_steps: 10000
   clip_gradient_norm: 3
   # epochs: 15
   epochs: 1
-  groups: ["full_musicnet_with_piano"]
-  pitch_shift: false
-  psuedo_labels: true
+  groups: ["full_musicnet_with_piano_random_shift"]
+  pitch_shift: true
+  psuedo_labels: false
   use_pop_conversion_map: false
+  debug_segments: true
 
   # dataset_name: "full_musicnet_groups_of_20"
-  dataset_name: "full_musicnet_with_piano"
+  dataset_name: "full_musicnet_with_piano_random_shift"
 
 inference_params:
   audio_files_dir: "flac_dir/classic_pieces"
@@ -41,5 +42,5 @@ inference_params:
 
 command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
 # command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_generate_labels"
-run_name: "full_musicnet_with_em_labels_no_pitch_shift_with_psuedo_labels"
-# run_name: inference_classic
+run_name: "debug_segments"
+# run_name: transcribe_test

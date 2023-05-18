@@ -177,6 +177,28 @@ def duplicate_linear(linear, n):
     A_new.requires_grad, b_new.requires_grad = True, True
     return layer_new
 
+def duplicate_linear_pop(linear, n):
+    A, b = linear.parameters()
+    num_nots = MAX_MIDI - MIN_MIDI + 1
+    assert A.shape[0] % (num_nots) == 0
+    num_prev_inst = A.shape[0] // num_nots - 1
+    A_pitch = A.detach()[-num_nots:, :]
+    b_pitch = b.detach()[-num_nots:]
+    in_features, out_features = linear.in_features, linear.out_features
+    layer_new = torch.nn.Linear(in_features, n * num_nots)
+    A_new, b_new = layer_new.parameters()
+    A_new.requires_grad, b_new.requires_grad = False, False
+    for j in range(n):
+        if j < num_prev_inst:
+            A_new[j * num_nots: (j + 1) * num_nots, :] = A.detach()[j * num_nots: (j + 1) * num_nots, :].clone()
+            b_new[j * num_nots: (j + 1) * num_nots] = b.detach()[j * num_nots: (j + 1) * num_nots].clone()
+        else:
+            A_new[j * num_nots: (j + 1) * num_nots, :] = A_pitch.clone()
+            b_new[j * num_nots: (j + 1) * num_nots] = b_pitch.detach().clone()
+    A_new.requires_grad, b_new.requires_grad = True, True
+    return layer_new
+
+
 
 def load_weights(model, old_model, n_instruments):
     for i in range(len(model.onset_stack)):
@@ -206,3 +228,34 @@ def load_weights(model, old_model, n_instruments):
             linear = old_model.velocity_stack[i]
             layer_new = duplicate_linear(linear, n_instruments)
             model.velocity_stack[i].load_state_dict(layer_new.state_dict())
+
+
+def load_weights_pop(model, old_model, n_instruments):
+    for i in range(len(model.onset_stack)):
+        if i < len(model.onset_stack) - 2:
+            model.onset_stack[i].load_state_dict(old_model.onset_stack[i].state_dict())
+        elif i < len(model.onset_stack) - 1:
+            linear = old_model.onset_stack[i]
+            layer_new = duplicate_linear_pop(linear, n_instruments)
+            model.onset_stack[i].load_state_dict(layer_new.state_dict())
+
+    for i in range(len(model.frame_stack)):
+        if i < len(model.frame_stack) - 1:
+            model.frame_stack[i].load_state_dict(old_model.frame_stack[i].state_dict())
+
+    for i in range(len(model.combined_stack)):
+        if i < len(model.combined_stack) - 1:
+            model.combined_stack[i].load_state_dict(old_model.combined_stack[i].state_dict())
+
+    for i in range(len(model.offset_stack)):
+        if i < len(model.offset_stack) - 1:
+            model.offset_stack[i].load_state_dict(old_model.offset_stack[i].state_dict())
+
+    for i in range(len(model.velocity_stack)):
+        if i < len(model.velocity_stack) - 1:
+            model.velocity_stack[i].load_state_dict(old_model.velocity_stack[i].state_dict())
+        elif i < len(model.velocity_stack):
+            linear = old_model.velocity_stack[i]
+            layer_new = duplicate_linear_pop(linear, n_instruments)
+            model.velocity_stack[i].load_state_dict(layer_new.state_dict())
+            
