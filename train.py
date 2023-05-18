@@ -16,7 +16,9 @@ import time
 import pop_conversion_map
 import sys
 import yaml
-
+import random
+import soundfile
+from onsets_and_frames import midi_utils
 
 def set_diff(model, diff=True):
     for layer in model.children():
@@ -79,7 +81,11 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     # labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}//NoteEm_labels'
     labels_path = os.path.join(logdir, 'NoteEm_labels')
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
-
+    debug_dir = None
+    if config['debug_segments']:
+        debug_dir = os.path.join(logdir, 'debug_files')
+        os.makedirs(debug_dir, exist_ok=True)
+        
     os.makedirs(labels_path, exist_ok=True)
     score_log_path = os.path.join(logdir, "score_log.txt")
     with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
@@ -120,9 +126,16 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         onset_complexity = 1.5 if '70' in transcriber_ckpt else 1.0
         saved_transcriber = torch.load(transcriber_ckpt).cpu()
         # We create a new transcriber with N_KEYS classes for each instrument:
+
+        # if config['load_weights_pop']:
+        prev_instruments = saved_transcriber.onset_stack[2].out_features // 88
         transcriber = OnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
-                                              model_complexity,
-                                    onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + 1).to(device)
+                                    model_complexity,
+                                onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments).to(device)
+        # else:
+        #     transcriber = OnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
+        #                             model_complexity,
+        #                             onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + 1).to(device)
         # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
         load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
     else:
@@ -187,7 +200,15 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             curr_loader = loader_cycle
             batch = next(curr_loader)
             optimizer.zero_grad()
-
+            if config['debug_segments'] and iteration % 1000 == 1:
+                inst_only = len(dataset.instruments) * N_KEYS
+                b_ind = random.randint(0, batch_size - 1)
+                save_path = os.path.join(debug_dir, f"iteration_{iteration}_piece_{os.path.basename(batch['path'][b_ind])}")
+                audio_array = batch['audio'][b_ind].detach().cpu().numpy()
+                onset_array = batch['onset'][b_ind][:,:inst_only].detach().cpu().numpy()
+                frame_array = batch['frame'][b_ind][:,:inst_only].detach().cpu().numpy()
+                soundfile.write(f"{save_path}.flac", audio_array, SAMPLE_RATE, format='flac', subtype='PCM_24')
+                midi_utils.frames2midi(f"{save_path}.mid", onset_array, frame_array, onset_array * 64, inst_mapping=dataset.instruments)
             transcription, transcription_losses = transcriber.run_on_batch(batch, parallel_transcriber,
                                                                            positive_weight=n_weight,
                                                                            inv_positive_weight=n_weight,
@@ -221,7 +242,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                 torch.save({'instrument_mapping': dataset.instruments},
                        os.path.join(logdir, 'instrument_mapping.pt'.format(iteration)))
             
-            if epochs == 1 and iteration % 10000 == 1:
+            if epochs == 1 and iteration % 5000 == 1:
                 score_msg = f"iteration {iteration:06d} loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision:  {onset_precision:.2f} " \
                     f"Onset Recall {onset_recall:.2f} Pitch Onset Precision:  {pitch_onset_precision:.2f} " \
                     f"Pitch Onset Recall  {pitch_onset_recall:.2f}\n"
