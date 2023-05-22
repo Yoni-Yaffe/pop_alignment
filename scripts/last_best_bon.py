@@ -21,8 +21,15 @@ def create_last_best_bon(best_bon_dir_path):
 
 
 if __name__ == "__main__":
-    best_bon_dir_path = "/a/home/cc/students/cs/jonathany/tmp_runs/new_runs/no_solo_group3_transcriber-230420-212931/alignments/BEST_BON"
-    create_last_best_bon(best_bon_dir_path)
+    best_bon_dir_path = "/vol/scratch/jonathany/runs/group1_transcriber-230425-152115/alignments/BEST_BON"
+    groups = [i for i in os.listdir("/vol/scratch/jonathany/runs") if 'group' in i]
+    for g in groups:
+        best_bon_dir_path = f"/vol/scratch/jonathany/runs/{g}/alignments/BEST_BON/one_per_song"
+        # src = best_bon_dir_path
+        # dst = f"/vol/scratch/jonathany/datasets/full_musicnet_groups_of_20/{g.split('_')[0]}"
+        # shutil.copytree(src, dst)
+        # print(f"Copied group {g}")
+        create_last_best_bon(best_bon_dir_path)
 
 
 
