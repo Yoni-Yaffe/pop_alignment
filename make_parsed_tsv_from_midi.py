@@ -9,7 +9,7 @@ import os
 import warnings
 from onsets_and_frames.midi_utils import parse_midi_multi
 warnings.filterwarnings("ignore")
-
+from tqdm import tqdm
 
 def midi2tsv_process(midi_path, target_path, shift=0, force_instrument=None):
     midi = parse_midi_multi(midi_path, force_instrument=force_instrument)
@@ -25,9 +25,9 @@ def create_tsv_for_single_group(midi_src_pth, target):
     FORCE_INSTRUMENT = None
     piece = midi_src_pth.split(os.sep)[-1]
     os.makedirs(target + os.sep + piece, exist_ok=True)
-    for f in os.listdir(midi_src_pth):
+    for f in tqdm(os.listdir(midi_src_pth)):
         if f.endswith('.mid') or f.endswith('.MID'):
-            print(f)
+            # print(f)
             midi2tsv_process(midi_src_pth + os.sep + f,
                             target + os.sep + piece + os.sep + f.replace('.mid', '.tsv').replace('.MID', '.tsv'),
                             force_instrument=FORCE_INSTRUMENT)
@@ -41,8 +41,11 @@ def create_tsv_for_multiple_groups(midi_src_pth_list, target):
 
 if __name__ == "__main__":
         # midi_src_pth = '/path/to/midi/perfromance'
-    midi_src_pth = '/vol/scratch/jonathany/datasets/musicnet_groups_of_20/midis'
-    midi_src_path_list = [os.path.join(midi_src_pth, f"group{i}") for i in range(1, 10)]
+    # midi_src_pth = '/vol/scratch/jonathany/datasets/musicnet_em_grouped'
+    midi_src_pth = '/vol/scratch/jonathany/datasets/full_musicnet_with_piano/midis'
+    
+    midi_src_path_list = [os.path.join(midi_src_pth, f"em_group{i}") for i in range(1, 10)]
+    midi_src_path_list = ['/vol/scratch/jonathany/datasets/Museopen_merged/mid_files/full_museopen']
     # target = '/disk4/ben/UnalignedSupervision/NoteEM_tsv'
     target = 'NoteEM_tsv'
     create_tsv_for_multiple_groups(midi_src_path_list, target)
