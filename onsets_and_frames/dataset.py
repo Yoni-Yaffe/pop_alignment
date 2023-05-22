@@ -64,7 +64,7 @@ class EMDATASET(Dataset):
         for group in groups:
             tsvs = os.listdir(tsvs_path + os.sep + group)
             tsvs = sorted(tsvs)
-            tsvs_names = [t.split('.tsv')[0] for t in tsvs]
+            tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in tsvs]
             for shft in range(-5, 6):
                 if shft != 0 and not pitch_shift:
                     continue
