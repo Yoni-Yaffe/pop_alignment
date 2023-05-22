@@ -4,7 +4,7 @@ from datetime import datetime
 
 if __name__ == "__main__":
     with open("config.yaml", 'r') as fp:
-        config = yaml.load(fp)
+        config = yaml.safe_load(fp)
     slurm_config = config['slurm_params']
     sbatch_command = 'sbatch'
     logdir = f"/vol/scratch/jonathany/runs/{config['run_name']}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
