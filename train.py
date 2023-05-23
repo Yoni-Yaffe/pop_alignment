@@ -26,9 +26,6 @@ def set_diff(model, diff=True):
             p.requires_grad = diff
 
 
-ex = Experiment('train_transcriber')
-
-
 
 # def config():
 #     logdir = 'runs/transcriber-' + datetime.now().strftime('%y%m%d-%H%M%S') # ckpts and midi will be saved here
@@ -79,7 +76,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     train_data_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/noteEM_audio'
     print(f"train_data_path: {train_data_path}")
     # labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}//NoteEm_labels'
-    labels_path = os.path.join(logdir, 'NoteEm_labels')
+    if config['use_labels_in_dataset_dir']:
+        labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/NoteEm_labels'
+    else:
+        labels_path = os.path.join(logdir, 'NoteEm_labels')
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
     debug_dir = None
     if config['debug_segments']:
