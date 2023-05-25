@@ -32,19 +32,21 @@ train_params:
   psuedo_labels: false
   use_pop_conversion_map: false
   use_classic_conversion_map: true
+  use_labels_in_dataset_dir: true
   debug_segments: false
 
   # dataset_name: "full_musicnet_groups_of_20"
-  # dataset_name: "full_museopen"
   dataset_name: "museopen_and_musicnet"
+  # dataset_name: "museopen_and_musicnet"
   
 
 inference_params:
-  audio_files_dir: "flac_dir/classic_pieces"
-  ckpt: "ckpts/trained_ckpts/transcriber_iteration_60001.pt"
+  inst_mapping: [0, 40, 47, 24, 60]
+  audio_files_dir: "flac_dir/both"
+  ckpt: "ckpts/trained_ckpts/transcriber_musicnet_and_museopen_4_inst.pt"
 
 
 command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
 # command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_generate_labels"
-run_name: "all_musicnet_and_museopen_run"
+run_name: "full_museopen_and_musicnet_batch_16"
 # run_name: transcribe_test

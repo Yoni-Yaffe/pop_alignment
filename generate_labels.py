@@ -72,8 +72,9 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir):
     print(f"saved midi to {save_path}")
 
 def generate_labels(transcriber_ckpt, flac_path, config):
-    inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 43, 45, 6, 60]
-    inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 45, 6, 60]
+    # inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 43, 45, 6, 60]
+    # inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 45, 6, 60]
+    inst_mapping = config['inst_mapping']
 
     num_instruments = len(inst_mapping)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
