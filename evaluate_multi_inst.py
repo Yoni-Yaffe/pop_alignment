@@ -152,8 +152,12 @@ def evaluate_file(synthsized_midis, reference_midis, instruments=None):
 
 
 if __name__ == '__main__':
-    transcribed_midis = os.listdir("evaluation/midis_no_pitch_shift_transcribed")
-    reference_midis = os.listdir("evaluation/midis_no_pitch_shift_original")
+    transcribed_path = "evaluation/midis_no_pitch_shift_transcribed"
+    reference_path = "evaluation/midis_no_pitch_shift_original"
+    transcribed_midis = os.listdir(transcribed_path)
+    reference_midis = os.listdir(reference_path)
+    transcribed_midis = [transcribed_path + '/' + s for s in transcribed_midis]
+    reference_midis = [reference_path + '/' + s for s in reference_midis]
     instruments = [0, 6, 10, 19, 24, 40, 41, 42, 43, 44, 45, 46, 47, 48, 52, 58, 60, 61, 64, 68, 70, 71, 73]
     instruments = [0, 68, 70, 71, 40, 73, 41, 42, 45, 6, 60]
     evaluate_file(transcribed_midis, reference_midis, instruments=instruments)

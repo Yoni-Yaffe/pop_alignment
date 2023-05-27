@@ -12,6 +12,26 @@ def midi_to_hz(m):
 def hz_to_midi(h):
     return 12. * np.log2(h / (440.)) + 69.
 
+def notes_to_frames(a, b, c):
+    n_steps, n_keys = c
+    label = torch.zeros(n_steps, n_keys, dtype=torch.uint8)
+    for onset, offset, note in zip(a, b[:,0], b[:, 1]):
+        f = int(note) - MIN_MIDI
+        if f >= n_keys or f < 0:
+            continue
+        left = int(round(onset * SAMPLE_RATE / HOP_LENGTH))
+        onset_right = min(n_steps, left + HOPS_IN_ONSET)
+        frame_right = int(round(offset * SAMPLE_RATE / HOP_LENGTH))
+        frame_right = min(n_steps, frame_right)
+        offset_right = min(n_steps, frame_right + HOPS_IN_OFFSET)
+        label[left:onset_right, f] = 3
+        label[onset_right:frame_right, f] = 2
+        label[frame_right:offset_right, f] = 1
+
+    return np.arange(n_steps), label
+        
+    
+
 def midi_to_frames(midi, instruments, conversion_map=None):
     n_keys = MAX_MIDI - MIN_MIDI + 1
     midi_length = int((max(midi[:, 1]) + 1) * SAMPLE_RATE)
@@ -46,6 +66,7 @@ def midi_to_frames(midi, instruments, conversion_map=None):
         label[left:onset_right, n_keys * inv_chan + f] = 3
         label[onset_right:frame_right, n_keys * inv_chan + f] = 2
         label[frame_right:offset_right, n_keys * inv_chan + f] = 1
+
     return label
 
 '''
