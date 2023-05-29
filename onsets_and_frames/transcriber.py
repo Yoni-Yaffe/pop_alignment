@@ -268,20 +268,21 @@ class ModulatedOnsetsAndFrames(nn.Module):
         onset_label = batch['onset']
         offset_label = batch['offset']
         frame_label = batch['frame']
+        instruments_one_hot_tensor = batch['instruments_one_hots']
 
-        batch_size, t, n = onset_label.shape
-        active_instruments = np.arange(n_instruments)[onset_label.any(dim=1).reshape(batch_size, n // N_KEYS, N_KEYS).any(2).any(0)[:-1]]
-        instruments = np.full(batch_size, n_instruments)
-        np.random.shuffle(active_instruments)
-        num_instruments_in_batch = min(batch_size // 2, len(active_instruments))
-        instruments[:num_instruments_in_batch] = active_instruments[:num_instruments_in_batch]
-        np.random.shuffle(instruments)
-        instruments_tensor = torch.tensor(instruments, dtype=torch.int64)
-        instruments_one_hot_tensor = F.one_hot(instruments_tensor).to(torch.float32)
+        # batch_size, t, n = onset_label.shape
+        # active_instruments = np.arange(n_instruments)[onset_label.any(dim=1).reshape(batch_size, n // N_KEYS, N_KEYS).any(2).any(0)[:-1]]
+        # instruments = np.full(batch_size, n_instruments)
+        # np.random.shuffle(active_instruments)
+        # num_instruments_in_batch = min(batch_size // 2, len(active_instruments))
+        # instruments[:num_instruments_in_batch] = active_instruments[:num_instruments_in_batch]
+        # np.random.shuffle(instruments)
+        # instruments_tensor = torch.tensor(instruments, dtype=torch.int64)
+        # instruments_one_hot_tensor = F.one_hot(instruments_tensor).to(torch.float32)
 
-        new_onset_label = torch.zeros((batch_size, t, N_KEYS), dtype=torch.float32)
-        for i, inst in enumerate(instruments):
-            new_onset_label[i] = onset_label[i, :, inst * N_KEYS: (inst + 1) * N_KEYS]
+        # new_onset_label = torch.zeros((batch_size, t, N_KEYS), dtype=torch.float32)
+        # for i, inst in enumerate(instruments):
+        #     new_onset_label[i] = onset_label[i, :, inst * N_KEYS: (inst + 1) * N_KEYS]
         if 'velocity' in batch:
             velocity_label = batch['velocity']
         mel = melspectrogram(audio_label.reshape(-1, audio_label.shape[-1])[:, :-1]).transpose(-1, -2)
@@ -307,7 +308,7 @@ class ModulatedOnsetsAndFrames(nn.Module):
             predictions['velocity'] = velocity_pred
 
         losses = {
-            'loss/onset': F.binary_cross_entropy(predictions['onset'], new_onset_label, reduction='none'),
+            'loss/onset': F.binary_cross_entropy(predictions['onset'], onset_label, reduction='none'),
             'loss/offset': F.binary_cross_entropy(predictions['offset'], offset_label, reduction='none'),
             'loss/frame': F.binary_cross_entropy(predictions['frame'], frame_label, reduction='none'),
             # 'loss/velocity': self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
@@ -315,7 +316,7 @@ class ModulatedOnsetsAndFrames(nn.Module):
         # if 'velocity' in batch:
         #     losses['loss/velocity'] = self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
 
-        onset_mask = 1. * new_onset_label
+        onset_mask = 1. * onset_label
         onset_mask *= (positive_weight - 1)
         # onset_mask[..., : -N_KEYS] *= (positive_weight - 1)
         # onset_mask[..., -N_KEYS:] *= (inv_positive_weight - 1)

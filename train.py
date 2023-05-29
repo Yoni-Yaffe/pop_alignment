@@ -11,7 +11,7 @@ from tqdm import tqdm
 from onsets_and_frames import *
 from onsets_and_frames.dataset import EMDATASET
 from torch.nn import DataParallel
-from onsets_and_frames.transcriber import load_weights, load_weights_pop
+from onsets_and_frames.transcriber import load_weights, load_weights_pop, modulated_load_weights
 import time
 from conversion_maps import pop_conversion_map, classic_conversion_map
 import sys
@@ -67,7 +67,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     print(f"device {device}")
     # print_config(ex.current_run)
     # os.makedirs(logdir, exist_ok=True)
-    n_weight = 3 if HOP_LENGTH == 512 else 2
+    n_weight = 1 if HOP_LENGTH == 512 else 2
     # group = "group9"
     # train_data_path = '/disk4/ben/UnalignedSupervision/NoteEM_audio'
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_labels'
@@ -129,18 +129,20 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         saved_transcriber = torch.load(transcriber_ckpt).cpu()
         # We create a new transcriber with N_KEYS classes for each instrument:
 
-        # if config['load_weights_pop']:
         prev_instruments = saved_transcriber.onset_stack[2].out_features // 88
-        transcriber = OnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
-                                    model_complexity,
-                                onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments).to(device)
-        # else:
-        #     transcriber = OnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
-        #                             model_complexity,
-        #                             onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + 1).to(device)
-        # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
-        # load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
-        load_weights_pop(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + prev_instruments)
+        if config['modulated_transcriber']:
+            transcriber = OnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
+                                        model_complexity,
+                                    onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments).to(device)
+            # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
+            load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
+        else:
+            transcriber = ModulatedOnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
+                                        model_complexity,
+                                    onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments).to(device)
+            # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
+            modulated_load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
+        # load_weights_pop(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + prev_instruments)
     else:
         # The checkpoint is already instrument-sensitive
         transcriber = torch.load(transcriber_ckpt).to(device)
@@ -212,6 +214,24 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                 frame_array = batch['frame'][b_ind][:,:inst_only].detach().cpu().numpy()
                 soundfile.write(f"{save_path}.flac", audio_array, SAMPLE_RATE, format='flac', subtype='PCM_24')
                 midi_utils.frames2midi(f"{save_path}.mid", onset_array, frame_array, onset_array * 64, inst_mapping=dataset.instruments)
+                
+            if config['modulated_transcriber']:
+                n_instruments = len(dataset.instruments)
+                batch_size, t, n = batch['onset'].shape
+                active_instruments = np.arange(n_instruments)[
+                    batch['onset'].any(dim=1).reshape(batch_size, n // N_KEYS, N_KEYS).any(2).any(0)[:-1]]
+                instruments = np.full(batch_size, n_instruments)
+                np.random.shuffle(active_instruments)
+                num_instruments_in_batch = min(batch_size // 2, len(active_instruments))
+                instruments[:num_instruments_in_batch] = active_instruments[:num_instruments_in_batch]
+                np.random.shuffle(instruments)
+                instruments_tensor = torch.tensor(instruments, dtype=torch.int64)
+                instruments_one_hot_tensor = F.one_hot(instruments_tensor).to(torch.float32)
+                new_onset_label = torch.zeros((batch_size, t, N_KEYS), dtype=torch.float32)
+                for i, inst in enumerate(instruments):
+                    new_onset_label[i] = batch['onset'][i, :, inst * N_KEYS: (inst + 1) * N_KEYS]
+                batch['onset'] = new_onset_label
+                batch['instruments_one_hots'] = instruments_one_hot_tensor
             transcription, transcription_losses = transcriber.run_on_batch(batch, parallel_transcriber,
                                                                            positive_weight=n_weight,
                                                                            inv_positive_weight=n_weight,
