@@ -5,7 +5,6 @@ from torch import nn
 from .mel import melspectrogram
 from .lstm import BiLSTM
 from onsets_and_frames.constants import *
-from constants import *
 
 
 class ConvStack(nn.Module):
@@ -164,6 +163,7 @@ class OnsetsAndFrames(nn.Module):
             'frame': frame_pred.reshape(*frame_label.shape),
             # 'velocity': velocity_pred.reshape(*velocity_label.shape)
         }
+        
         if 'velocity' in batch:
             predictions['velocity'] = velocity_pred.reshape(*velocity_label.shape)
 
@@ -262,8 +262,7 @@ class ModulatedOnsetsAndFrames(nn.Module):
         velocity_pred = self.velocity_stack(mel)
         return onset_pred, offset_pred, activation_pred, frame_pred, velocity_pred
 
-    def run_on_batch(self, batch, instruments_list, parallel_model=None, multi=False, positive_weight=2., inv_positive_weight=2.):
-        n_instruments = len(instruments_list)
+    def run_on_batch(self, batch, parallel_model=None, multi=False, positive_weight=2., inv_positive_weight=2.):
         audio_label = batch['audio']
         onset_label = batch['onset']
         offset_label = batch['offset']
