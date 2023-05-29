@@ -28,29 +28,30 @@ train_params:
   # epochs: 15
   epochs: 1
   # groups: ["Rousset Goldberg"]
-  groups: ["Orchestral Suite 3"]
-  # groups: ["full_museopen", "full_musicnet_with_piano_random_shift"]
+  # groups: ["Orchestral Suite 3"]
+  groups: ["full_museopen", "full_musicnet_with_piano_random_shift"]
   pitch_shift: true
   psuedo_labels: false
   use_pop_conversion_map: false
   use_classic_conversion_map: true
   use_labels_in_dataset_dir: true
   debug_segments: false
-  modulated_transcriber: true
+  modulated_transcriber: false
 
   # dataset_name: "full_musicnet_groups_of_20"
-  dataset_name: "Orchestral Suite 3"
-  # dataset_name: "museopen_and_musicnet"
+  # dataset_name: "Orchestral Suite 3"
+  dataset_name: "museopen_and_musicnet"
   
 
 inference_params:
   # inst_mapping: [0, 40, 47, 24, 60]
   inst_mapping: [6]
   audio_files_dir: "flac_dir/both"
+  modulated_transcriber: false
   ckpt: "ckpts/trained_ckpts/goldberg_transcriber.pt"
 
 
 command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
 # command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_generate_labels"
-run_name: "Orchestral_Suite_3_test"
+run_name: "full_musicnet_and_museopen_previous_model"
 # run_name: "generate_new_songs_labels"
