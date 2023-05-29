@@ -24,9 +24,11 @@ train_params:
   learning_rate: 0.0001
   learning_rate_decay_steps: 10000
   clip_gradient_norm: 3
+  n_weight: 1
   # epochs: 15
   epochs: 1
-  groups: ["Rousset Goldberg"]
+  # groups: ["Rousset Goldberg"]
+  groups: ["Orchestral Suite 3"]
   # groups: ["full_museopen", "full_musicnet_with_piano_random_shift"]
   pitch_shift: true
   psuedo_labels: false
@@ -37,7 +39,7 @@ train_params:
   modulated_transcriber: true
 
   # dataset_name: "full_musicnet_groups_of_20"
-  dataset_name: "Rousset Goldberg"
+  dataset_name: "Orchestral Suite 3"
   # dataset_name: "museopen_and_musicnet"
   
 
@@ -50,5 +52,5 @@ inference_params:
 
 command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
 # command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_generate_labels"
-run_name: "sanity_check_run_n_weight1"
+run_name: "Orchestral_Suite_3_test"
 # run_name: "generate_new_songs_labels"
