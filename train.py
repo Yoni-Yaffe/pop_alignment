@@ -228,6 +228,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                 np.random.shuffle(active_instruments)
                 num_instruments_in_batch = min(b // 2, len(active_instruments))
                 instruments[:num_instruments_in_batch] = active_instruments[:num_instruments_in_batch]
+                rand_instruments = np.random.choice(active_instruments, b)
+                instruments[num_instruments_in_batch: b // 2] = rand_instruments[num_instruments_in_batch: b // 2]
                 np.random.shuffle(instruments)
                 instruments_tensor = torch.tensor(instruments, dtype=torch.int64)
                 instruments_one_hot_tensor = F.one_hot(instruments_tensor).to(torch.float32)
@@ -252,7 +254,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             pitch_onset_recall = (onset_total_tp[..., -N_KEYS:].sum() / onset_total_p[..., -N_KEYS:].sum()).item()
             pitch_onset_precision = (onset_total_tp[..., -N_KEYS:].sum() / onset_total_pp[..., -N_KEYS:].sum()).item()
 
-            transcription_loss = sum(transcription_losses.values())
+            # transcription_loss = sum(transcription_losses.values())
+            transcription_loss = transcription_losses['loss/onset']
             loss = transcription_loss
             loss.backward()
 
