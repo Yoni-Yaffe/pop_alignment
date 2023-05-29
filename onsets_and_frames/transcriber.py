@@ -1,9 +1,12 @@
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
 from .mel import melspectrogram
 from .lstm import BiLSTM
 from onsets_and_frames.constants import *
+from constants import *
+
 
 class ConvStack(nn.Module):
     def __init__(self, input_features, output_features):
@@ -40,7 +43,7 @@ class ConvStack(nn.Module):
         x = x.transpose(1, 2).flatten(-2)
         x = self.fc(x)
         return x
-    
+
 
 class ModulatedOnsetStack(nn.Module):
     def __init__(self, input_features, output_features, model_size,
@@ -74,9 +77,9 @@ class LinearModulation(nn.Module):
     def forward(self, x, inst_id):
         inst_id = self.mlp(inst_id)
         scale, shift = inst_id.chunk(chunks=2, dim=1)
+        scale, shift = scale[:, None, :], shift[:, None, :]
         x = (1 + scale) * x + shift
         return x
-
 
 
 class OnsetsAndFrames(nn.Module):
@@ -90,9 +93,7 @@ class OnsetsAndFrames(nn.Module):
         onset_model_size = int(onset_complexity * model_size)
         self.onset_stack = nn.Sequential(
             ConvStack(input_features, onset_model_size),
-            
             sequence_model(onset_model_size, onset_model_size),
-            
             nn.Linear(onset_model_size, output_features * n_instruments),
             nn.Sigmoid()
         )
@@ -167,11 +168,11 @@ class OnsetsAndFrames(nn.Module):
             predictions['velocity'] = velocity_pred.reshape(*velocity_label.shape)
 
         losses = {
-                'loss/onset': F.binary_cross_entropy(predictions['onset'], onset_label, reduction='none'),
-                'loss/offset': F.binary_cross_entropy(predictions['offset'], offset_label, reduction='none'),
-                'loss/frame': F.binary_cross_entropy(predictions['frame'], frame_label, reduction='none'),
-                # 'loss/velocity': self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
-            }
+            'loss/onset': F.binary_cross_entropy(predictions['onset'], onset_label, reduction='none'),
+            'loss/offset': F.binary_cross_entropy(predictions['offset'], offset_label, reduction='none'),
+            'loss/frame': F.binary_cross_entropy(predictions['frame'], frame_label, reduction='none'),
+            # 'loss/velocity': self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
+        }
         if 'velocity' in batch:
             losses['loss/velocity'] = self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
 
@@ -209,11 +210,10 @@ class ModulatedOnsetsAndFrames(nn.Module):
     def __init__(self, input_features, output_features, model_complexity=48,
                  onset_complexity=1,
                  n_instruments=13):
-        super().__init__(input_features, output_features, model_complexity,
-                         onset_complexity, n_instruments)
+        super().__init__()
         model_size = model_complexity * 16
         onset_model_size = int(onset_complexity * model_size)
-        self.onset_stack = ModulatedOnsetStack(input_features, output_features, onset_model_size, n_instruments)
+        self.onset_stack = ModulatedOnsetStack(input_features, output_features, onset_model_size, onset_model_size)
         self.mlp = nn.Sequential(
             nn.Linear(n_instruments, onset_model_size),
             nn.LeakyReLU(),
@@ -265,85 +265,78 @@ class ModulatedOnsetsAndFrames(nn.Module):
     def run_on_batch(self, batch, instruments_list, parallel_model=None, multi=False, positive_weight=2., inv_positive_weight=2.):
         n_instruments = len(instruments_list)
         audio_label = batch['audio']
-
         onset_label = batch['onset']
         offset_label = batch['offset']
         frame_label = batch['frame']
+
+        batch_size, t, n = onset_label.shape
+        active_instruments = np.arange(n_instruments)[onset_label.any(dim=1).reshape(batch_size, n // N_KEYS, N_KEYS).any(2).any(0)[:-1]]
+        instruments = np.full(batch_size, n_instruments)
+        np.random.shuffle(active_instruments)
+        num_instruments_in_batch = min(batch_size // 2, len(active_instruments))
+        instruments[:num_instruments_in_batch] = active_instruments[:num_instruments_in_batch]
+        np.random.shuffle(instruments)
+        instruments_tensor = torch.tensor(instruments, dtype=torch.int64)
+        instruments_one_hot_tensor = F.one_hot(instruments_tensor).to(torch.float32)
+
+        new_onset_label = torch.zeros((batch_size, t, N_KEYS), dtype=torch.float32)
+        for i, inst in enumerate(instruments):
+            new_onset_label[i] = onset_label[i, :, inst * N_KEYS: (inst + 1) * N_KEYS]
         if 'velocity' in batch:
             velocity_label = batch['velocity']
-        total_losses = {
-            'loss/onset': 0,
-            'loss/offset': 0,
-            'loss/frame': 0,
-            'loss/velocity': 0
-        }
         mel = melspectrogram(audio_label.reshape(-1, audio_label.shape[-1])[:, :-1]).transpose(-1, -2)
-        one_hot_list = F.one_hot(torch.arange(n_instruments + 1).roll(-1, 0))
-        for i, inst in enumerate(instruments_list):
-            inst_id = one_hot_list[i]
-            curr_onset_label = onset_label[:, N_KEYS * i: N_KEYS * (i + 1)]
-            curr_offset_label = offset_label[:, N_KEYS * i: N_KEYS * (i + 1)]
-            curr_frame_label = frame_label[:, N_KEYS * i: N_KEYS * (i + 1)]
-            if 'velocity' in batch:
-                curr_velocity_label = velocity_label[:, N_KEYS * i: N_KEYS * (i + 1)]
-            if not parallel_model:
-                onset_pred, offset_pred, _, frame_pred, velocity_pred = self(mel, inst_id)
-            else:
-                onset_pred, offset_pred, _, frame_pred, velocity_pred = parallel_model(mel, inst_id)
 
-            if multi:
-                onset_pred = onset_pred[..., : N_KEYS]
-                offset_pred = offset_pred[..., : N_KEYS]
-                frame_pred = frame_pred[..., : N_KEYS]
-                velocity_pred = velocity_pred[..., : N_KEYS]
+        if not parallel_model:
+            onset_pred, offset_pred, _, frame_pred, velocity_pred = self(mel, instruments_one_hot_tensor)
+        else:
+            onset_pred, offset_pred, _, frame_pred, velocity_pred = parallel_model(mel, instruments_one_hot_tensor)
 
-            predictions = {
-                'onset': onset_pred.reshape(*curr_onset_label.shape),
-                'offset': offset_pred.reshape(*curr_offset_label.shape),
-                'frame': frame_pred.reshape(*curr_frame_label.shape),
-            }
-            if 'velocity' in batch:
-                predictions['velocity'] = velocity_pred.reshape(*velocity_label.shape)
-            if i == 0:
-                total_predictions = predictions
-            else:
-                for key in total_predictions.keys():
-                    total_predictions[key] = torch.cat(total_predictions[key], predictions[key])
-            losses = {
-                'loss/onset': F.binary_cross_entropy(predictions['onset'], curr_onset_label, reduction='none'),
-                'loss/offset': F.binary_cross_entropy(predictions['offset'], curr_offset_label, reduction='none'),
-                'loss/frame': F.binary_cross_entropy(predictions['frame'], curr_frame_label, reduction='none'),
-                # 'loss/velocity': self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
-            }
-            if 'velocity' in batch:
-                losses['loss/velocity'] = self.velocity_loss(predictions['velocity'], curr_velocity_label, curr_onset_label)
+        # if multi:
+        #     onset_pred = onset_pred[..., : N_KEYS]
+        #     offset_pred = offset_pred[..., : N_KEYS]
+        #     frame_pred = frame_pred[..., : N_KEYS]
+        #     velocity_pred = velocity_pred[..., : N_KEYS]
 
-            onset_mask = 1. * onset_label
-            onset_mask[..., : -N_KEYS] *= (positive_weight - 1)
-            onset_mask[..., -N_KEYS:] *= (inv_positive_weight - 1)
-            onset_mask += 1
-            if 'onset_mask' in batch:
-                onset_mask = onset_mask * batch['onset_mask']
+        predictions = {
+            'onset': onset_pred,
+            'offset': offset_pred,
+            'frame': frame_pred,
+            # 'velocity': velocity_pred.reshape(*velocity_label.shape)
+        }
+        if 'velocity' in batch:
+            predictions['velocity'] = velocity_pred
 
-            offset_mask = 1. * curr_offset_label
-            offset_positive_weight = 2.
-            offset_mask *= (offset_positive_weight - 1)
-            offset_mask += 1.
+        losses = {
+            'loss/onset': F.binary_cross_entropy(predictions['onset'], new_onset_label, reduction='none'),
+            'loss/offset': F.binary_cross_entropy(predictions['offset'], offset_label, reduction='none'),
+            'loss/frame': F.binary_cross_entropy(predictions['frame'], frame_label, reduction='none'),
+            # 'loss/velocity': self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
+        }
+        # if 'velocity' in batch:
+        #     losses['loss/velocity'] = self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
 
-            frame_mask = 1. * curr_frame_label
-            frame_positive_weight = 2.
-            frame_mask *= (frame_positive_weight - 1)
-            frame_mask += 1.
+        onset_mask = 1. * new_onset_label
+        onset_mask *= (positive_weight - 1)
+        # onset_mask[..., : -N_KEYS] *= (positive_weight - 1)
+        # onset_mask[..., -N_KEYS:] *= (inv_positive_weight - 1)
+        onset_mask += 1
+        if 'onset_mask' in batch:
+            onset_mask = onset_mask * batch['onset_mask']
 
-            for loss_key, mask in zip(['onset', 'offset', 'frame'], [onset_mask, offset_mask, frame_mask]):
-                losses['loss/' + loss_key] = (mask * losses['loss/' + loss_key]).mean()
+        offset_mask = 1. * offset_label
+        offset_positive_weight = 2.
+        offset_mask *= (offset_positive_weight - 1)
+        offset_mask += 1.
 
-            for key in ['onset', 'offset', 'frame']:
-                total_losses[f'loss/{key}'] += losses[f'loss/{key}']
-            if 'velocity' in batch:
-                total_losses['loss/velocity'] += losses['loss/velocity']
-        return total_predictions, total_losses
+        frame_mask = 1. * frame_label
+        frame_positive_weight = 2.
+        frame_mask *= (frame_positive_weight - 1)
+        frame_mask += 1.
 
+        for loss_key, mask in zip(['onset', 'offset', 'frame'], [onset_mask, offset_mask, frame_mask]):
+            losses['loss/' + loss_key] = (mask * losses['loss/' + loss_key]).mean()
+
+        return predictions, losses
 
 
 def duplicate_linear(linear, n):
@@ -358,27 +351,29 @@ def duplicate_linear(linear, n):
     A_new.requires_grad, b_new.requires_grad = True, True
     return layer_new
 
+
 def duplicate_linear_pop(linear, n):
     A, b = linear.parameters()
-    num_nots = MAX_MIDI - MIN_MIDI + 1
-    assert A.shape[0] % (num_nots) == 0
-    num_prev_inst = A.shape[0] // num_nots - 1
-    A_pitch = A.detach()[-num_nots:, :]
-    b_pitch = b.detach()[-num_nots:]
+    num_notes = N_KEYS
+    assert A.shape[0] % num_notes == 0
+    num_prev_inst = A.shape[0] // num_notes - 1
+    A_pitch = A.detach()[-num_notes:, :]
+    b_pitch = b.detach()[-num_notes:]
     in_features, out_features = linear.in_features, linear.out_features
-    layer_new = torch.nn.Linear(in_features, n * num_nots)
+    layer_new = torch.nn.Linear(in_features, (n + num_prev_inst) * num_notes)
     A_new, b_new = layer_new.parameters()
     A_new.requires_grad, b_new.requires_grad = False, False
     for j in range(n):
         if j < num_prev_inst:
-            A_new[j * num_nots: (j + 1) * num_nots, :] = A.detach()[j * num_nots: (j + 1) * num_nots, :].clone()
-            b_new[j * num_nots: (j + 1) * num_nots] = b.detach()[j * num_nots: (j + 1) * num_nots].clone()
+            A_new[j * num_notes: (j + 1) * num_notes, :] = A.detach()[j * num_notes: (j + 1) * num_notes, :].clone()
+            b_new[j * num_notes: (j + 1) * num_notes] = b.detach()[j * num_notes: (j + 1) * num_notes].clone()
         else:
-            A_new[j * num_nots: (j + 1) * num_nots, :] = A_pitch.clone()
-            b_new[j * num_nots: (j + 1) * num_nots] = b_pitch.detach().clone()
+            A_new[j * num_notes: (j + 1) * num_notes, :] = A_pitch.clone()
+            b_new[j * num_notes: (j + 1) * num_notes] = b_pitch.detach().clone()
+        # A_new[j * out_features: (j + 1) * out_features, :] = A.detach().clone()
+        # b_new[j * out_features: (j + 1) * out_features] = b.detach().clone()
     A_new.requires_grad, b_new.requires_grad = True, True
     return layer_new
-
 
 
 def load_weights(model, old_model, n_instruments):
@@ -437,5 +432,32 @@ def load_weights_pop(model, old_model, n_instruments):
             model.velocity_stack[i].load_state_dict(old_model.velocity_stack[i].state_dict())
         elif i < len(model.velocity_stack):
             linear = old_model.velocity_stack[i]
-            layer_new = duplicate_linear_pop(linear, n_instruments)
+            layer_new = duplicate_linear(linear, n_instruments)
             model.velocity_stack[i].load_state_dict(layer_new.state_dict())
+
+
+def modulated_load_weights(model: ModulatedOnsetsAndFrames, old_model: OnsetsAndFrames, n_instruments):
+    model.onset_stack.conv_stack.load_state_dict(old_model.onset_stack[0].state_dict())
+    model.onset_stack.seq_model.load_state_dict(old_model.onset_stack[1].state_dict())
+    model.onset_stack.fc[0].load_state_dict(old_model.onset_stack[2].state_dict())
+
+    for i in range(len(model.frame_stack)):
+        if i < len(model.frame_stack) - 1:
+            model.frame_stack[i].load_state_dict(old_model.frame_stack[i].state_dict())
+
+    for i in range(len(model.combined_stack)):
+        if i < len(model.combined_stack) - 1:
+            model.combined_stack[i].load_state_dict(old_model.combined_stack[i].state_dict())
+
+    for i in range(len(model.offset_stack)):
+        if i < len(model.offset_stack) - 1:
+            model.offset_stack[i].load_state_dict(old_model.offset_stack[i].state_dict())
+
+    for i in range(len(model.velocity_stack)):
+        if i < len(model.velocity_stack) - 1:
+            model.velocity_stack[i].load_state_dict(old_model.velocity_stack[i].state_dict())
+        elif i < len(model.velocity_stack):
+            linear = old_model.velocity_stack[i]
+            layer_new = duplicate_linear(linear, n_instruments)
+            model.velocity_stack[i].load_state_dict(layer_new.state_dict())
+
