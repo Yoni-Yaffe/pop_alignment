@@ -43,7 +43,10 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
                 batch_mel = curr_mel.repeat(len(inst_mapping) + 1, 1, 1)
                 instruments = F.one_hot(torch.arange(len(inst_mapping) + 1)).to(torch.float32).to('cuda')
                 curr_onset_pred, curr_offset_pred, _, curr_frame_pred, curr_velocity_pred = transcriber(batch_mel, instruments)
-                curr_onset_pred = rearrange(curr_onset_pred, 'i t n -> t (i n)')
+                curr_onset_pred = rearrange(curr_onset_pred, 'i t n -> 1 t (i n)')
+                curr_frame_pred = rearrange(curr_frame_pred.max(axis=0)[0], 't n -> 1 t n')
+                curr_offset_pred, curr_velocity_pred = curr_offset_pred[:1], curr_velocity_pred[:1]
+                
             else:
                 curr_onset_pred, curr_offset_pred, _, curr_frame_pred, curr_velocity_pred = transcriber(curr_mel)
             onsets_preds.append(curr_onset_pred)
@@ -61,9 +64,12 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
         if modulated_transcriber:
             batch_mel = mel.repeat(len(inst_mapping) + 1, 1, 1)
             instruments = F.one_hot(torch.arange(len(inst_mapping) + 1)).to(torch.float32).to('cuda')
-            curr_onset_pred, curr_offset_pred, _, curr_frame_pred, curr_velocity_pred = transcriber(batch_mel, instruments)
-        onset_pred, offset_pred, _, frame_pred, velocity_pred = transcriber(mel)
-        onset_pred = rearrange(onset_pred, 'i t n -> t (i n)')
+            onset_pred, offset_pred, _, frame_pred, velocity_pred = transcriber(batch_mel, instruments)
+            offset_pred, velocity_pred = offset_pred[:1], velocity_pred[:1]
+            onset_pred = rearrange(onset_pred, 'i t n -> 1 t (i n)')
+            frame_pred = rearrange(frame_pred.max(axis=0)[0], 't n -> 1 t n')
+        else:
+            onset_pred, offset_pred, _, frame_pred, velocity_pred = transcriber(mel)
 
     onset_pred = onset_pred.detach().squeeze().cpu()
     frame_pred = frame_pred.detach().squeeze().cpu()
