@@ -225,12 +225,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                 active_instruments = np.arange(n_instruments)[np.array(
                     batch['onset'].any(dim=1).reshape(b, n // N_KEYS, N_KEYS).any(2).any(0)[:-1].cpu())]
                 instruments = np.full(b, n_instruments)
-                np.random.shuffle(active_instruments)
                 num_instruments_in_batch = min(b // 2, len(active_instruments))
                 instruments[:num_instruments_in_batch] = active_instruments[:num_instruments_in_batch]
                 rand_instruments = np.random.choice(active_instruments, b)
                 instruments[num_instruments_in_batch: b // 2] = rand_instruments[num_instruments_in_batch: b // 2]
-                np.random.shuffle(instruments)
                 instruments_tensor = torch.tensor(instruments, dtype=torch.int64)
                 instruments_one_hot_tensor = F.one_hot(instruments_tensor).to(torch.float32)
                 new_onset_label = torch.zeros((b, t, N_KEYS), dtype=torch.float32)
