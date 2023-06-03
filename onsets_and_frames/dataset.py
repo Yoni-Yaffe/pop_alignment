@@ -154,6 +154,7 @@ class EMDATASET(Dataset):
         result['frame'], _ = result['frame'].reshape(new_shape).max(axis=-2)
         result['big_offset'] = result['offset']
         result['offset'], _ = result['offset'].reshape(new_shape).max(axis=-2)
+        result['group'] = self.data[index][0].split(os.sep)[-2].split('#')[0]
         return result
 
     def load(self, audio_path, tsv_path):
