@@ -20,6 +20,7 @@ import yaml
 import random
 import soundfile
 from onsets_and_frames import midi_utils
+import networkx as nx
 
 def set_diff(model, diff=True):
     for layer in model.children():
@@ -52,6 +53,24 @@ def set_diff(model, diff=True):
 def append_to_file(path, msg):
     with open(path, 'a') as fp:
         fp.write(msg + '\n')
+        
+def get_max_matching(batch_onset_array):
+    b, inst = batch_onset_array.shape
+    adj = np.zeros((b + inst, b + inst))
+    adj[:b, b:] = batch_onset_array
+    adj[b:, :b] = batch_onset_array.transpose()
+    G = nx.from_numpy_array(adj)
+    matching = nx.max_weight_matching(G)
+    d = {min(e): max(e) - b for e in matching}
+    res = np.zeros(b)
+    for i in range(b):
+        if i in d:
+            res[i] = d[i]
+        else:
+            res[i] = np.random.choice(np.arange(inst)[batch_onset_array[i]])
+    return res
+
+    
 
 
 def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
@@ -133,9 +152,11 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
         prev_instruments = saved_transcriber.onset_stack[2].out_features // 88
         if config['modulated_transcriber']:
-            transcriber = ModulatedOnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
+            transcriber = ModulatedOnsetsAndFrames2(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
                                         model_complexity,
-                                    onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments).to(device)
+                                    onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments,#).to(device)
+                                    n_groups=len(train_groups)).to(device)
+            print("transcriber", transcriber)
             # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
             modulated_load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
         else:
@@ -158,6 +179,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     set_diff(transcriber.velocity_stack, False)
 
     parallel_transcriber = DataParallel(transcriber)
+    print("parallel transcriber", parallel_transcriber)
     optimizer = torch.optim.Adam(list(transcriber.parameters()), lr=learning_rate, weight_decay=1e-5)
     transcriber.zero_grad()
     optimizer.zero_grad()
@@ -222,20 +244,32 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                 n_instruments = len(dataset.instruments)
                 b, t, n = batch['onset'].shape
                 
-                active_instruments = np.arange(n_instruments)[np.array(
-                    batch['onset'].any(dim=1).reshape(b, n // N_KEYS, N_KEYS).any(2).any(0)[:-1].cpu())]
+                # active_instruments = np.arange(n_instruments)[np.array(
+                #     batch['onset'][: b // 2].any(dim=1).reshape(b // 2, n // N_KEYS, N_KEYS).any(2).any(0)[:-1].cpu())]
+                           
                 instruments = np.full(b, n_instruments)
-                num_instruments_in_batch = min(b // 2, len(active_instruments))
-                instruments[:num_instruments_in_batch] = active_instruments[:num_instruments_in_batch]
-                rand_instruments = np.random.choice(active_instruments, b)
-                instruments[num_instruments_in_batch: b // 2] = rand_instruments[num_instruments_in_batch: b // 2]
+                # num_instruments_in_batch = min(b // 2, len(active_instruments))
+                # np.random.shuffle(active_instruments)
+                # instruments[:num_instruments_in_batch] = active_instruments[:num_instruments_in_batch]
+                # rand_instruments = np.random.choice(active_instruments, b)
+                # instruments[num_instruments_in_batch: b // 2] = rand_instruments[num_instruments_in_batch: b // 2]
+                onset_array = batch['onset']
+                onset_array_per_inst = onset_array[: b // 2, :, :-N_KEYS].any(1).reshape(b // 2, n // N_KEYS - 1, N_KEYS).any(2).cpu().numpy()
+                instruments[: b // 2] = get_max_matching(onset_array_per_inst)
                 instruments_tensor = torch.tensor(instruments, dtype=torch.int64)
                 instruments_one_hot_tensor = F.one_hot(instruments_tensor).to(torch.float32)
+                batch_groups = [train_groups.index(g) for g in batch['group']]
+                group_one_hot_tensor = F.one_hot(torch.tensor(batch_groups), num_classes=len(train_groups)).to(torch.float32)
                 new_onset_label = torch.zeros((b, t, N_KEYS), dtype=torch.float32)
                 for i, inst in enumerate(instruments):
                     new_onset_label[i] = batch['onset'][i, :, inst * N_KEYS: (inst + 1) * N_KEYS]
                 batch['onset'] = new_onset_label.to(device)
                 batch['instruments_one_hots'] = instruments_one_hot_tensor.to(device)
+                batch['group_one_hots'] = group_one_hot_tensor.to(device)
+                # print('active_instruments: ', active_instruments)
+                # print("instruments: ", instruments)
+                # count = [i.detach().cpu().sum() for i in batch['onset']]
+                # print("count onsets ", count)
             transcription, transcription_losses = transcriber.run_on_batch(batch, parallel_model=parallel_transcriber,
                                                                            positive_weight=n_weight,
                                                                            inv_positive_weight=n_weight,
@@ -248,9 +282,12 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
             onset_recall = (onset_total_tp.sum() / onset_total_p.sum()).item()
             onset_precision = (onset_total_tp.sum() / onset_total_pp.sum()).item()
-
-            pitch_onset_recall = (onset_total_tp[..., -N_KEYS:].sum() / onset_total_p[..., -N_KEYS:].sum()).item()
-            pitch_onset_precision = (onset_total_tp[..., -N_KEYS:].sum() / onset_total_pp[..., -N_KEYS:].sum()).item()
+            if config['modulated_transcriber']:
+                pitch_onset_recall = (onset_total_tp[batch_size // 2:].sum() / onset_total_p[batch_size // 2:].sum()).item()
+                pitch_onset_precision = (onset_total_tp[batch_size // 2:].sum() / onset_total_pp[batch_size // 2:].sum()).item()
+            else:
+                pitch_onset_recall = (onset_total_tp[..., -N_KEYS:].sum() / onset_total_p[..., -N_KEYS:].sum()).item()
+                pitch_onset_precision = (onset_total_tp[..., -N_KEYS:].sum() / onset_total_pp[..., -N_KEYS:].sum()).item()
 
             # transcription_loss = sum(transcription_losses.values())
             transcription_loss = transcription_losses['loss/onset']
@@ -262,8 +299,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
             optimizer.step()
             total_loss.append(loss.item())
-            print(f"loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision: {onset_precision:.2f} Onset Recall {onset_recall:.2f} "
-                  f"Pitch Onset Precision: {pitch_onset_precision:.2f} Pitch Onset Recall {pitch_onset_recall:.2f}")
+            print(f"avg loss: {sum(total_loss) / len(total_loss):.5f} current loss: {total_loss[-1]:.5f} Onset Precision: {onset_precision:.3f} Onset Recall {onset_recall:.3f} "
+                  f"Pitch Onset Precision: {pitch_onset_precision:.3f} Pitch Onset Recall {pitch_onset_recall:.3f}")
             if epochs == 1 and iteration % 20000 == 1:
                 torch.save(transcriber, os.path.join(logdir, 'transcriber_iteration_{}.pt'.format(iteration)))
                 torch.save(optimizer.state_dict(), os.path.join(logdir, 'last-optimizer-state.pt'))
@@ -271,18 +308,18 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                        os.path.join(logdir, 'instrument_mapping.pt'.format(iteration)))
             
             if epochs == 1 and iteration % 5000 == 1:
-                score_msg = f"iteration {iteration:06d} loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision:  {onset_precision:.2f} " \
-                    f"Onset Recall {onset_recall:.2f} Pitch Onset Precision:  {pitch_onset_precision:.2f} " \
-                    f"Pitch Onset Recall  {pitch_onset_recall:.2f}\n"
+                score_msg = f"iteration {iteration:06d} loss: {sum(total_loss) / len(total_loss):.5f} Onset Precision:  {onset_precision:.3f} " \
+                    f"Onset Recall {onset_recall:.3f} Pitch Onset Precision:  {pitch_onset_precision:.3f} " \
+                    f"Pitch Onset Recall  {pitch_onset_recall:.3f}\n"
                 with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
                     fp.write(score_msg)
 
 
 
         time_end = time.time()
-        score_msg = f"epoch {epoch:02d} loss: {sum(total_loss) / len(total_loss):.2f} Onset Precision:  {onset_precision:.2f} " \
-                    f"Onset Recall {onset_recall:.2f} Pitch Onset Precision:  {pitch_onset_precision:.2f} " \
-                    f"Pitch Onset Recall  {pitch_onset_recall:.2f} time label update: {time.strftime('%M:%S', time.gmtime(time_end - time_start))}\n"
+        score_msg = f"epoch {epoch:02d} loss: {sum(total_loss) / len(total_loss):.5f} Onset Precision:  {onset_precision:.3f} " \
+                    f"Onset Recall {onset_recall:.3f} Pitch Onset Precision:  {pitch_onset_precision:.3f} " \
+                    f"Pitch Onset Recall  {pitch_onset_recall:.3f} time label update: {time.strftime('%M:%S', time.gmtime(time_end - time_start))}\n"
 
         save_condition = epoch % checkpoint_interval == 1
         if save_condition and epochs != 1:
@@ -301,7 +338,6 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     torch.save(optimizer.state_dict(), os.path.join(logdir, 'last-optimizer-state.pt'))
     torch.save({'instrument_mapping': dataset.instruments},
                        os.path.join(logdir, 'instrument_mapping.pt'.format(epoch)))
-    # shutil.copy(f"slurm_logs/slurmlog.out", os.path.join(logdir, "full_log_slurm.txt"))
     
 
 if __name__ == '__main__':
