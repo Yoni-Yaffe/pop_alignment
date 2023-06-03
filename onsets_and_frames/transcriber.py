@@ -326,7 +326,7 @@ class ModulatedOnsetsAndFrames(nn.Module):
         return predictions, losses
 
 
-class ModulatedOnsetsAndFrames2(nn.Module):
+class ModulatedOnsetsAndFramesGroup(nn.Module):
     def __init__(self, input_features, output_features, model_complexity=48,
                  onset_complexity=1,
                  n_instruments=13, n_groups=1):

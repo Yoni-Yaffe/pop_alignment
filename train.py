@@ -152,10 +152,15 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
         prev_instruments = saved_transcriber.onset_stack[2].out_features // 88
         if config['modulated_transcriber']:
-            transcriber = ModulatedOnsetsAndFrames2(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
-                                        model_complexity,
-                                    onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments,#).to(device)
-                                    n_groups=len(train_groups)).to(device)
+            if config['group_modulation']:
+                transcriber = ModulatedOnsetsAndFramesGroup(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
+                                            model_complexity,
+                                        onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments,#).to(device)
+                                        n_groups=len(train_groups)).to(device)
+            else:
+                transcriber = ModulatedOnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
+                                            model_complexity,
+                                        onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments).to(device)
             print("transcriber", transcriber)
             # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
             modulated_load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
@@ -258,14 +263,15 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                 instruments[: b // 2] = get_max_matching(onset_array_per_inst)
                 instruments_tensor = torch.tensor(instruments, dtype=torch.int64)
                 instruments_one_hot_tensor = F.one_hot(instruments_tensor).to(torch.float32)
-                batch_groups = [train_groups.index(g) for g in batch['group']]
-                group_one_hot_tensor = F.one_hot(torch.tensor(batch_groups), num_classes=len(train_groups)).to(torch.float32)
                 new_onset_label = torch.zeros((b, t, N_KEYS), dtype=torch.float32)
                 for i, inst in enumerate(instruments):
                     new_onset_label[i] = batch['onset'][i, :, inst * N_KEYS: (inst + 1) * N_KEYS]
                 batch['onset'] = new_onset_label.to(device)
-                batch['instruments_one_hots'] = instruments_one_hot_tensor.to(device)
-                batch['group_one_hots'] = group_one_hot_tensor.to(device)
+                if config['group_modulation']:
+                    batch_groups = [train_groups.index(g) for g in batch['group']]
+                    group_one_hot_tensor = F.one_hot(torch.tensor(batch_groups), num_classes=len(train_groups)).to(torch.float32)
+                    batch['instruments_one_hots'] = instruments_one_hot_tensor.to(device)
+                    batch['group_one_hots'] = group_one_hot_tensor.to(device)
                 # print('active_instruments: ', active_instruments)
                 # print("instruments: ", instruments)
                 # count = [i.detach().cpu().sum() for i in batch['onset']]

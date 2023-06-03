@@ -9,7 +9,7 @@ slurm_params:
   ntasks: "1" # number of processes
   mem: "50000" # CPU memory (MB)
   cpus-per-task: "8" # CPU cores per process
-  gpus: "1" # GPUs in tota
+  gpus: "2" # GPUs in tota
   constraint: "titan_xp"
 
 train_params:
@@ -38,6 +38,7 @@ train_params:
   use_labels_in_dataset_dir: true
   debug_segments: false
   modulated_transcriber: true
+  group_modulation: false  # relevant only when modulated_transcriber is set to true 
 
   # dataset_name: "full_musicnet_groups_of_20"
   # dataset_name: "museopen_and_musicnet"
