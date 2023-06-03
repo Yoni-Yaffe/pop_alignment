@@ -269,19 +269,6 @@ class ModulatedOnsetsAndFrames(nn.Module):
         frame_label = batch['frame']
         instruments_one_hot_tensor = batch['instruments_one_hots']
 
-        # batch_size, t, n = onset_label.shape
-        # active_instruments = np.arange(n_instruments)[onset_label.any(dim=1).reshape(batch_size, n // N_KEYS, N_KEYS).any(2).any(0)[:-1]]
-        # instruments = np.full(batch_size, n_instruments)
-        # np.random.shuffle(active_instruments)
-        # num_instruments_in_batch = min(batch_size // 2, len(active_instruments))
-        # instruments[:num_instruments_in_batch] = active_instruments[:num_instruments_in_batch]
-        # np.random.shuffle(instruments)
-        # instruments_tensor = torch.tensor(instruments, dtype=torch.int64)
-        # instruments_one_hot_tensor = F.one_hot(instruments_tensor).to(torch.float32)
-
-        # new_onset_label = torch.zeros((batch_size, t, N_KEYS), dtype=torch.float32)
-        # for i, inst in enumerate(instruments):
-        #     new_onset_label[i] = onset_label[i, :, inst * N_KEYS: (inst + 1) * N_KEYS]
         if 'velocity' in batch:
             velocity_label = batch['velocity']
         mel = melspectrogram(audio_label.reshape(-1, audio_label.shape[-1])[:, :-1]).transpose(-1, -2)
@@ -290,6 +277,136 @@ class ModulatedOnsetsAndFrames(nn.Module):
             onset_pred, offset_pred, _, frame_pred, velocity_pred = self(mel, instruments_one_hot_tensor)
         else:
             onset_pred, offset_pred, _, frame_pred, velocity_pred = parallel_model(mel, instruments_one_hot_tensor)
+
+        # if multi:
+        #     onset_pred = onset_pred[..., : N_KEYS]
+        #     offset_pred = offset_pred[..., : N_KEYS]
+        #     frame_pred = frame_pred[..., : N_KEYS]
+        #     velocity_pred = velocity_pred[..., : N_KEYS]
+
+        predictions = {
+            'onset': onset_pred,
+            'offset': offset_pred,
+            'frame': frame_pred,
+            # 'velocity': velocity_pred.reshape(*velocity_label.shape)
+        }
+        if 'velocity' in batch:
+            predictions['velocity'] = velocity_pred
+
+        losses = {
+            'loss/onset': F.binary_cross_entropy(predictions['onset'], onset_label, reduction='none'),
+            'loss/offset': F.binary_cross_entropy(predictions['offset'], offset_label, reduction='none'),
+            'loss/frame': F.binary_cross_entropy(predictions['frame'], frame_label, reduction='none'),
+            # 'loss/velocity': self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
+        }
+        # if 'velocity' in batch:
+        #     losses['loss/velocity'] = self.velocity_loss(predictions['velocity'], velocity_label, onset_label)
+
+        onset_mask = 1. * onset_label
+        onset_mask *= (positive_weight - 1)
+        # onset_mask[..., : -N_KEYS] *= (positive_weight - 1)
+        # onset_mask[..., -N_KEYS:] *= (inv_positive_weight - 1)
+        onset_mask += 1
+        if 'onset_mask' in batch:
+            onset_mask = onset_mask * batch['onset_mask']
+
+        offset_mask = 1. * offset_label
+        offset_positive_weight = 2.
+        offset_mask *= (offset_positive_weight - 1)
+        offset_mask += 1.
+
+        frame_mask = 1. * frame_label
+        frame_positive_weight = 2.
+        frame_mask *= (frame_positive_weight - 1)
+        frame_mask += 1.
+
+        for loss_key, mask in zip(['onset', 'offset', 'frame'], [onset_mask, offset_mask, frame_mask]):
+            losses['loss/' + loss_key] = (mask * losses['loss/' + loss_key]).mean()
+
+        return predictions, losses
+
+
+class ModulatedOnsetsAndFrames2(nn.Module):
+    def __init__(self, input_features, output_features, model_complexity=48,
+                 onset_complexity=1,
+                 n_instruments=13, n_groups=1):
+        super().__init__()
+        model_size = model_complexity * 16
+        onset_model_size = int(onset_complexity * model_size)
+        self.onset_stack = ModulatedOnsetStack(input_features, output_features, onset_model_size, 2 * onset_model_size)
+        self.mlp_inst = nn.Sequential(
+            nn.Linear(n_instruments, onset_model_size),
+            nn.LeakyReLU(),
+            nn.Linear(onset_model_size, onset_model_size),
+            nn.LeakyReLU(),
+        )
+        self.mlp_group = nn.Sequential(
+            nn.Dropout(0.1),
+            nn.Linear(n_groups, onset_model_size),
+            nn.LeakyReLU(),
+            nn.Linear(onset_model_size, onset_model_size),
+            nn.LeakyReLU(),
+        )
+        sequence_model = lambda input_size, output_size: BiLSTM(input_size, output_size // 2)
+        self.offset_stack = nn.Sequential(
+            ConvStack(input_features, model_size),
+            sequence_model(model_size, model_size),
+            nn.Linear(model_size, output_features),
+            nn.Sigmoid()
+        )
+        self.frame_stack = nn.Sequential(
+            ConvStack(input_features, model_size),
+            nn.Linear(model_size, output_features),
+            nn.Sigmoid()
+        )
+        self.combined_stack = nn.Sequential(
+            sequence_model(output_features * 3, model_size),
+            nn.Linear(model_size, output_features),
+            nn.Sigmoid()
+        )
+        self.velocity_stack = nn.Sequential(
+            ConvStack(input_features, model_size),
+            nn.Linear(model_size, output_features * n_instruments)
+        )
+
+    def forward(self, mel, inst_id, group_id):
+        inst_id = self.mlp_inst(inst_id)
+        group_id = self.mlp_group(group_id)
+        modulation_id = torch.cat((inst_id, group_id), dim=1)
+        onset_pred = self.onset_stack(mel, modulation_id)
+        offset_pred = self.offset_stack(mel)
+        activation_pred = self.frame_stack(mel)
+
+        onset_detached = onset_pred.detach()
+        shape = onset_detached.shape
+        keys = MAX_MIDI - MIN_MIDI + 1
+        new_shape = shape[: -1] + (shape[-1] // keys, keys)
+        onset_detached = onset_detached.reshape(new_shape)
+        onset_detached, _ = onset_detached.max(axis=-2)
+
+        offset_detached = offset_pred.detach()
+
+        combined_pred = torch.cat([onset_detached, offset_detached, activation_pred], dim=-1)
+        frame_pred = self.combined_stack(combined_pred)
+        velocity_pred = self.velocity_stack(mel)
+        return onset_pred, offset_pred, activation_pred, frame_pred, velocity_pred
+
+    def run_on_batch(self, batch, parallel_model=None, multi=False, positive_weight=2., inv_positive_weight=2.):
+        audio_label = batch['audio']
+        onset_label = batch['onset']
+        offset_label = batch['offset']
+        frame_label = batch['frame']
+        instruments_one_hot_tensor = batch['instruments_one_hots']
+        group_one_hot_tensor = batch['group_one_hots']
+
+        if 'velocity' in batch:
+            velocity_label = batch['velocity']
+        mel = melspectrogram(audio_label.reshape(-1, audio_label.shape[-1])[:, :-1]).transpose(-1, -2)
+
+        if not parallel_model:
+            onset_pred, offset_pred, _, frame_pred, velocity_pred = self(mel, instruments_one_hot_tensor, group_one_hot_tensor)
+        else:
+            onset_pred, offset_pred, _, frame_pred, velocity_pred = parallel_model(mel, instruments_one_hot_tensor, group_one_hot_tensor)
 
         # if multi:
         #     onset_pred = onset_pred[..., : N_KEYS]
