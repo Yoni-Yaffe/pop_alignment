@@ -8,6 +8,7 @@ from scipy.stats import hmean
 from tqdm import tqdm
 from onsets_and_frames import *
 from onsets_and_frames.midi_utils import *
+from onsets_and_frames.decoding import notes_to_frames
 import os
 
 eps = sys.float_info.epsilon
@@ -153,7 +154,7 @@ def evaluate_file(synthsized_midis, reference_midis, instruments=None):
 
 if __name__ == '__main__':
     transcribed_path = "evaluation/midis_no_pitch_shift_transcribed"
-    reference_path = "evaluation/midis_no_pitch_shift_original"
+    reference_path = "evaluation/new_inference_dir/results"
     transcribed_midis = os.listdir(transcribed_path)
     reference_midis = os.listdir(reference_path)
     transcribed_midis = [transcribed_path + '/' + s for s in transcribed_midis]
