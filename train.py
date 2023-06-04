@@ -267,10 +267,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                 for i, inst in enumerate(instruments):
                     new_onset_label[i] = batch['onset'][i, :, inst * N_KEYS: (inst + 1) * N_KEYS]
                 batch['onset'] = new_onset_label.to(device)
+                batch['instruments_one_hots'] = instruments_one_hot_tensor.to(device)
                 if config['group_modulation']:
                     batch_groups = [train_groups.index(g) for g in batch['group']]
                     group_one_hot_tensor = F.one_hot(torch.tensor(batch_groups), num_classes=len(train_groups)).to(torch.float32)
-                    batch['instruments_one_hots'] = instruments_one_hot_tensor.to(device)
                     batch['group_one_hots'] = group_one_hot_tensor.to(device)
                 # print('active_instruments: ', active_instruments)
                 # print("instruments: ", instruments)
