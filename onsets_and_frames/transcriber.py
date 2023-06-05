@@ -477,7 +477,7 @@ def duplicate_linear_pop(linear, n):
     A_pitch = A.detach()[-num_notes:, :]
     b_pitch = b.detach()[-num_notes:]
     in_features, out_features = linear.in_features, linear.out_features
-    layer_new = torch.nn.Linear(in_features, (n + num_prev_inst) * num_notes)
+    layer_new = torch.nn.Linear(in_features, n * num_notes)
     A_new, b_new = layer_new.parameters()
     A_new.requires_grad, b_new.requires_grad = False, False
     for j in range(n):
@@ -549,7 +549,7 @@ def load_weights_pop(model, old_model, n_instruments):
             model.velocity_stack[i].load_state_dict(old_model.velocity_stack[i].state_dict())
         elif i < len(model.velocity_stack):
             linear = old_model.velocity_stack[i]
-            layer_new = duplicate_linear(linear, n_instruments)
+            layer_new = duplicate_linear_pop(linear, n_instruments)
             model.velocity_stack[i].load_state_dict(layer_new.state_dict())
 
 
