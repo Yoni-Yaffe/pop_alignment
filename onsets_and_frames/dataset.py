@@ -97,6 +97,13 @@ class EMDATASET(Dataset):
                 
                 for f, t in zip(eval_fls, eval_tsvs):
                     self.eval_file_list.append((curr_fls_pth + os.sep + f, tsvs_path + os.sep + group + os.sep + t))
+        for flac, tsv in res:
+            if os.path.basename(flac).split('#')[0].split('.flac')[0] != os.path.basename(tsv).split('#')[0].split('.tsv')[0]:
+                print("found mismatch in the files: ")
+                print(os.path.basename(flac).split('#')[0])
+                print(os.path.basename(tsv).split('#')[0])
+                print("please check the input files")
+                exit(1)
         return res
 
     def get_instruments(self, conversion_map=None):
@@ -384,9 +391,8 @@ class EMDATASET(Dataset):
                     aligned_offsets[t_off_src, f] = 1
 
             # eliminate instruments that do not exist in the unaligned midi
-            inactive_instruments, active_instruments_list = get_inactive_instruments(unaligned_onsets, len(aligned_onsets))
-            onset_pred_np[inactive_instruments] = 0
-
+            # inactive_instruments, active_instruments_list = get_inactive_instruments(unaligned_onsets, len(aligned_onsets))
+            # onset_pred_np[inactive_instruments] = 0
             pseudo_onsets = (onset_pred_np >= POS) & (~aligned_onsets)
             inst_only = len(self.instruments) * N_KEYS
             if first: # do not use pseudo labels for instruments in first labelling iteration since the model doesn't distinguish yet
