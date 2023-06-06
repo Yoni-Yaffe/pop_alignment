@@ -436,3 +436,11 @@ def save_midi_alignments_and_predictions(save_path, data_path, inst_mapping,
                     max_pred_onsets[:, : inst_only], predicted_frames[:, : inst_only],
                     64. * max_pred_onsets[:, : inst_only],
                     inst_mapping=inst_mapping)
+    
+    max_onsets = np.maximum(predicted_onsets, aligned_onsets)
+    max_frames = np.maximum(predicted_frames, aligned_frames)
+    frames2midi(save_path + os.sep + data_path.replace('.flac', '').split(os.sep)[-1] + prefix + '_pred_align_max_' + time_now + '.mid',
+                    max_onsets[:, : inst_only], max_frames[:, : inst_only],
+                    64. * max_onsets[:, : inst_only],
+                    inst_mapping=inst_mapping)
+    

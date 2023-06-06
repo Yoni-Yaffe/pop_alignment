@@ -20,7 +20,10 @@ class EMDATASET(Dataset):
                  groups=None, sequence_length=None, seed=42, device=DEFAULT_DEVICE,
                  instrument_map=None, update_instruments=False, transcriber=None,
                  conversion_map=None,
-                 pitch_shift=True):
+                 pitch_shift=True,
+                 keep_eval_files=True,
+                 n_eval=1,
+                 prev_inst_mapping=None):
         self.audio_path = audio_path
         self.labels_path = labels_path
         self.sequence_length = sequence_length
@@ -28,7 +31,11 @@ class EMDATASET(Dataset):
         self.random = np.random.RandomState(seed)
         self.groups = groups
         self.conversion_map = conversion_map
-        self.file_list = self.files(self.groups, pitch_shift=pitch_shift)
+        self.eval_file_list = []
+        self.file_list = self.files(self.groups, pitch_shift=pitch_shift, keep_eval_files=keep_eval_files, n_eval=n_eval)
+        print("file_list", self.file_list)
+        print("eval_file list", self.eval_file_list)
+        self.prev_inst_mapping = prev_inst_mapping
         if instrument_map is None:
             self.get_instruments(conversion_map=conversion_map)
         else:
@@ -37,6 +44,8 @@ class EMDATASET(Dataset):
                 self.add_instruments()
         self.transcriber = transcriber
         self.load_pts(self.file_list)
+        if self.prev_inst_mapping is not None:
+            self.instruments = self.prev_inst_mapping + self.instruments
         self.data = []
         print('Reading files...')
         for input_files in tqdm(self.file_list):
@@ -51,37 +60,43 @@ class EMDATASET(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def files(self, groups, pitch_shift=True):
-        # self.path = 'NoteEM_audio'
+    def files(self, groups, pitch_shift=True, keep_eval_files=True, n_eval=1):
         self.path = self.audio_path
         tsvs_path = 'NoteEM_tsv'
         res = []
-        # good_ids = list(range(2075, 2084))
-        # good_ids += list(range(1817, 1820))
-        # good_ids += list(range(2202, 2205))
-        # good_ids += list(range(2415, 2418))
-        # good_ids += list(range(2504, 2508))
         for group in groups:
+            print("keep eval files", keep_eval_files)
+            print("n eval", n_eval)
             tsvs = os.listdir(tsvs_path + os.sep + group)
             tsvs = sorted(tsvs)
+            if keep_eval_files:
+                eval_tsvs = tsvs[:n_eval]
+                tsvs = tsvs[n_eval:]
+            else:
+                eval_tsvs = []
             tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in tsvs]
+            eval_tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in eval_tsvs]
             for shft in range(-5, 6):
                 if shft != 0 and not pitch_shift:
                     continue
                 curr_fls_pth = self.path + os.sep + group + '#{}'.format(shft)
                 
                 fls = os.listdir(curr_fls_pth)
-                print(f"files names\n {fls}")
+                # print(f"files names before\n {fls}")
                 fls = [i for i in fls if i.split('#')[0] in tsvs_names] # in case we dont have the corresponding midi
-                print(f"files names\n {fls}")
+                # print(f"files names after\n {fls}")
                 fls = sorted(fls)
-                print(list(zip(fls, tsvs)))
+                
+                eval_fls = os.listdir(curr_fls_pth)
+                # print(f"files names\n {eval_fls}")
+                eval_fls = [i for i in eval_fls if i.split('#')[0] in eval_tsvs_names] # in case we dont have the corresponding midi
+                # print(f"files names\n {eval_fls}")
+                eval_fls = sorted(eval_fls)
                 for f, t in zip(fls, tsvs):
-                    # #### MusicNet
-                    # if 'MusicNet' in group:
-                    #     if all([str(elem) not in f for elem in good_ids]):
-                    #         continue
                     res.append((curr_fls_pth + os.sep + f, tsvs_path + os.sep + group + os.sep + t))
+                
+                for f, t in zip(eval_fls, eval_tsvs):
+                    self.eval_file_list.append((curr_fls_pth + os.sep + f, tsvs_path + os.sep + group + os.sep + t))
         return res
 
     def get_instruments(self, conversion_map=None):
@@ -223,6 +238,9 @@ class EMDATASET(Dataset):
                     continue
                 midi = np.loadtxt(tsv, delimiter='\t', skiprows=1)
                 unaligned_label = midi_to_frames(midi, self.instruments, conversion_map=self.conversion_map)
+                if self.prev_inst_mapping is not None:
+                    zero_labels = torch.zeros((unaligned_label.shape[0], N_KEYS * len(self.prev_inst_mapping)))
+                    unaligned_label = torch.cat((zero_labels, unaligned_label), dim=1)
                 data = dict(path=self.labels_path + os.sep + flac.split(os.sep)[-1],
                             audio=audio, unaligned_label=unaligned_label,
                             label=unaligned_label)
@@ -400,7 +418,8 @@ class EMDATASET(Dataset):
 
             label = np.maximum(2 * frame_label, offset_label)
             label = np.maximum(3 * onset_label, label).astype(np.uint8)
-
+            
+            
             if to_save is not None:
                 save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
                                          aligned_onsets, aligned_frames,

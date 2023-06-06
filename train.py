@@ -137,7 +137,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                            device=DEFAULT_DEVICE,
                             instrument_map=instrument_map,
                             conversion_map=conversion_map,
-                            pitch_shift=config['pitch_shift']
+                            pitch_shift=config['pitch_shift'],
+                            prev_inst_mapping=config['prev_inst_mapping']
                         )
     print('len dataset', len(dataset), len(dataset.data))
     append_to_file(score_log_path, f'Dataset instruments: {dataset.instruments}')
@@ -146,32 +147,46 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     #####
     if not multi_ckpt:
         model_complexity = 48 if '48' in transcriber_ckpt else 64
-        onset_complexity = 1.5 if '70' in transcriber_ckpt else 1.0
+        onset_complexity = 1.5 # if '70' in transcriber_ckpt else 1.0
         saved_transcriber = torch.load(transcriber_ckpt).cpu()
         # We create a new transcriber with N_KEYS classes for each instrument:
 
-        prev_instruments = saved_transcriber.onset_stack[2].out_features // 88
+        # prev_instruments = saved_transcriber.onset_stack[2].out_features // 88
         if config['modulated_transcriber']:
             if config['group_modulation']:
                 transcriber = ModulatedOnsetsAndFramesGroup(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
                                             model_complexity,
-                                        onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments,#).to(device)
+                                        onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + 1,#).to(device)
                                         n_groups=len(train_groups)).to(device)
             else:
+
                 transcriber = ModulatedOnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
                                             model_complexity,
-                                        onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments).to(device)
+                                        onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + 1).to(device)
             print("transcriber", transcriber)
             # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
             modulated_load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
         else:
-            
+            # print("len dataset instruments", len(dataset.instruments))
+            # print("len prev instruments", prev_instruments)
             transcriber = OnsetsAndFrames(N_MELS, (MAX_MIDI - MIN_MIDI + 1),
                                         model_complexity,
-                                    onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + prev_instruments).to(device)
+                                    onset_complexity=onset_complexity, n_instruments=len(dataset.instruments) + 1).to(device)
             # We load weights from the saved pitch-only checkkpoint and duplicate the final layer as an initialization:
-            load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
-            # load_weights_pop(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + prev_instruments)
+            # load_weights(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
+            # print("transcriber", transcriber)
+            # print("saved transcriber", saved_transcriber)
+            load_weights_pop(transcriber, saved_transcriber, n_instruments=len(dataset.instruments) + 1)
+            
+            # # a code to verify that the linear layer was loaded successfuly
+            # A_old, b_old = saved_transcriber.onset_stack[-2].parameters()
+            # A_new, b_new = transcriber.onset_stack[-2].parameters()
+            # assert torch.all(A_new[:prev_instruments * N_KEYS].detach().cpu().eq(A_old.detach().cpu()))
+            # assert torch.all(b_new[:prev_instruments * N_KEYS].detach().cpu().eq(b_old.detach().cpu()))
+            # for i in range(len(dataset.instruments)):
+            #     assert torch.all(A_new[N_KEYS * (i + prev_instruments): N_KEYS * (i + 1 + prev_instruments)].detach().cpu().eq(A_old.detach().cpu()[-N_KEYS:]))
+            #     assert torch.all(b_new[N_KEYS * (i + prev_instruments): N_KEYS * (i + 1 + prev_instruments)].detach().cpu().eq(b_old.detach().cpu()[-N_KEYS:]))
+            # print("passed tests")
     else:
         # The checkpoint is already instrument-sensitive
         transcriber = torch.load(transcriber_ckpt).to(device)
@@ -205,7 +220,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         if config['psuedo_labels']:
             POS = 0.7
         # if epoch == 1 we do not want to make alignment
-        if epochs > 1:
+        if config['update_pts']:
             with torch.no_grad():
                 
                 dataset.update_pts(parallel_transcriber,
