@@ -437,10 +437,23 @@ def save_midi_alignments_and_predictions(save_path, data_path, inst_mapping,
                     64. * max_pred_onsets[:, : inst_only],
                     inst_mapping=inst_mapping)
     
-    max_onsets = np.maximum(predicted_onsets, aligned_onsets)
-    max_frames = np.maximum(predicted_frames, aligned_frames)
+    pseudo_onsets = (onset_pred_np >= 0.5) & (~aligned_onsets)
+    onset_label = np.maximum(pseudo_onsets, aligned_onsets)
+    
+    
+    pseudo_frames = np.zeros(pseudo_onsets.shape, dtype=pseudo_onsets.dtype)
+    for t, f in zip(*onset_label.nonzero()):
+        t_off = t
+        while t_off < len(pseudo_frames) and frame_pred_np[t_off, f % N_KEYS] >= 0.5:
+            t_off += 1
+        pseudo_frames[t: t_off, f] = 1
+    frame_label = np.maximum(pseudo_frames, aligned_frames)
+    
+    # pseudo_frames = (frame_pred_np >= 0.5) & (~aligned_frames)
+    # frame_label = np.maximum(pseudo_frames, aligned_frames)
+    
     frames2midi(save_path + os.sep + data_path.replace('.flac', '').split(os.sep)[-1] + prefix + '_pred_align_max_' + time_now + '.mid',
-                    max_onsets[:, : inst_only], max_frames[:, : inst_only],
-                    64. * max_onsets[:, : inst_only],
+                    onset_label[:, : inst_only], frame_label[:, : inst_only],
+                    64. * onset_label[:, : inst_only],
                     inst_mapping=inst_mapping)
     
