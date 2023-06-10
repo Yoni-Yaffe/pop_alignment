@@ -3,12 +3,19 @@ import soundfile
 from torch.nn import DataParallel
 from onsets_and_frames.transcriber import load_weights
 from onsets_and_frames.midi_utils import frames2midi
-from train import set_diff
 import sys
 import yaml
 import os
 import torch.nn.functional as F
 from einops import rearrange
+from onsets_and_frames.transcriber import ModulatedOnsetsAndFrames, ModulatedOnsetsAndFramesGroup
+
+
+def set_diff(model, diff=True):
+    for layer in model.children():
+        for p in layer.parameters():
+            p.requires_grad = diff
+
 
 def load_audio(flac):
     audio, sr = soundfile.read(flac, dtype='int16')
@@ -24,6 +31,16 @@ def load_audio(flac):
 
 
 def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulated_transcriber=False):
+    if isinstance(transcriber, DataParallel):
+        transcriber_module = transcriber.module
+    else:
+        transcriber_module = transcriber
+    modulated_inst = isinstance(transcriber_module, ModulatedOnsetsAndFrames)
+    modulated_inst_and_group = isinstance(transcriber_module, ModulatedOnsetsAndFramesGroup)
+    print("modulated inst", modulated_inst)
+    print("modulated inst and group", modulated_inst_and_group)
+    if modulated_inst_and_group:
+        n_groups = transcriber_module.mlp_group[1].in_features
     audio = load_audio(flac_path)
     audio_inp = audio.float() / 32768.
     MAX_TIME = 5 * 60 * SAMPLE_RATE
@@ -39,13 +56,19 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
         for i_s in range(n_segments):
             curr = audio_inp[i_s * seg_len: (i_s + 1) * seg_len].unsqueeze(0).cuda()
             curr_mel = melspectrogram(curr.reshape(-1, curr.shape[-1])[:, :-1]).transpose(-1, -2)
-            if modulated_transcriber:
+            if modulated_inst or modulated_inst_and_group:
                 batch_mel = curr_mel.repeat(len(inst_mapping) + 1, 1, 1)
                 instruments = F.one_hot(torch.arange(len(inst_mapping) + 1)).to(torch.float32).to('cuda')
-                curr_onset_pred, curr_offset_pred, _, curr_frame_pred, curr_velocity_pred = transcriber(batch_mel, instruments)
+                if modulated_inst:
+                    curr_onset_pred, curr_offset_pred, _, curr_frame_pred, curr_velocity_pred = transcriber(batch_mel, instruments)
+                else:
+                    groups = torch.zeros((len(inst_mapping) + 1, n_groups)).to(torch.float32).to('cuda')
+                    curr_onset_pred, curr_offset_pred, _, curr_frame_pred, curr_velocity_pred = transcriber(batch_mel, instruments, groups)
+                    
                 curr_onset_pred = rearrange(curr_onset_pred, 'i t n -> 1 t (i n)')
                 curr_frame_pred = rearrange(curr_frame_pred.max(axis=0)[0], 't n -> 1 t n')
                 curr_offset_pred, curr_velocity_pred = curr_offset_pred[:1], curr_velocity_pred[:1]
+                    
                 
             else:
                 curr_onset_pred, curr_offset_pred, _, curr_frame_pred, curr_velocity_pred = transcriber(curr_mel)
@@ -61,10 +84,14 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
         print("didn't have to split")
         audio_inp = audio_inp.unsqueeze(0).cuda()
         mel = melspectrogram(audio_inp.reshape(-1, audio_inp.shape[-1])[:, :-1]).transpose(-1, -2)
-        if modulated_transcriber:
+        if modulated_inst or modulated_inst_and_group:
             batch_mel = mel.repeat(len(inst_mapping) + 1, 1, 1)
             instruments = F.one_hot(torch.arange(len(inst_mapping) + 1)).to(torch.float32).to('cuda')
-            onset_pred, offset_pred, _, frame_pred, velocity_pred = transcriber(batch_mel, instruments)
+            if modulated_inst:
+                onset_pred, offset_pred, _, frame_pred, velocity_pred = transcriber(batch_mel, instruments)
+            else:
+                groups = torch.zeros((len(inst_mapping) + 1, n_groups)).to(torch.float32).to('cuda')
+                onset_pred, offset_pred, _, frame_pred, velocity_pred = transcriber(batch_mel, instruments, groups)
             offset_pred, velocity_pred = offset_pred[:1], velocity_pred[:1]
             onset_pred = rearrange(onset_pred, 'i t n -> 1 t (i n)')
             frame_pred = rearrange(frame_pred.max(axis=0)[0], 't n -> 1 t n')
@@ -78,6 +105,7 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
     onset_pred[~peaks] = 0
 
     onset_pred_np = onset_pred.numpy()
+    # onset_pred_np[:, :-N_KEYS * 5] = 0
     frame_pred_np = frame_pred.numpy()
 
     # save_path = 'Champions_League.mid'
@@ -89,6 +117,7 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
                 64. * onset_pred_np[:, : inst_only],
                 inst_mapping=inst_mapping)
     print(f"saved midi to {save_path}")
+    return save_path
 
 def generate_labels(transcriber_ckpt, flac_path, config):
     # inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 43, 45, 6, 60]
