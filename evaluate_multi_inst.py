@@ -19,7 +19,7 @@ def midi2hz(midi):
     return res
 
 
-def evaluate(synthsized_midis, reference_midis, instruments=None):
+def evaluate(synthsized_midis, reference_midis, instruments=None, conversion_map=None):
     metrics = defaultdict(list)
 
     counter = 0
@@ -27,8 +27,16 @@ def evaluate(synthsized_midis, reference_midis, instruments=None):
     for transcribed, reference in tqdm(zip(synthsized_midis, reference_midis)):
         print('eval for', transcribed.split('/')[-1], reference.split('/')[-1])
         counter += 1
+        if reference.endswith('.tsv'):
+            reference_events = np.loadtxt(reference, delimiter='\t', skiprows=1)
+        else:
+            reference_events = parse_midi_multi(reference)   
         transcribed_events = parse_midi_multi(transcribed)
-        reference_events = parse_midi_multi(reference)
+        if conversion_map is not None:
+            convert_func = np.vectorize(lambda x: conversion_map.get(x, x))
+            reference_events[:, 4] = convert_func(reference_events[:, 4])
+            transcribed_events[:, 4] = convert_func(transcribed_events[:, 4])
+            
 
         max_time = int(reference_events[:, 1].max() + 5)
         audio_length = max_time * SAMPLE_RATE
@@ -140,10 +148,10 @@ def evaluate(synthsized_midis, reference_midis, instruments=None):
     return metrics
 
 
-def evaluate_file(synthsized_midis, reference_midis, instruments=None):
-    metrics = evaluate(synthsized_midis, reference_midis, instruments=instruments)
+def evaluate_file(synthsized_midis, reference_midis, instruments=None, conversion_map=None):
+    metrics = evaluate(synthsized_midis, reference_midis, instruments=instruments, conversion_map=conversion_map)
     # metrics = evaluate(tqdm(dataset), (model, parallel_model), onset_threshold, frame_threshold, save_path)
-
+    
 
     for key, values in metrics.items():
         if key.startswith('metric/'):
