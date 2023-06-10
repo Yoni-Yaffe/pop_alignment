@@ -21,13 +21,17 @@ import random
 import soundfile
 from onsets_and_frames import midi_utils
 import networkx as nx
+from evaluate_multi_inst import evaluate_file
+from generate_labels import inference_single_flac
+from contextlib import redirect_stdout
+from scripts.get_runs_metadata import add_run_to_metadata_dir
 
 def set_diff(model, diff=True):
     for layer in model.children():
         for p in layer.parameters():
             p.requires_grad = diff
 
-
+META_DATA_DIR = '../../runs_metadata'
 
 # def config():
 #     logdir = 'runs/transcriber-' + datetime.now().strftime('%y%m%d-%H%M%S') # ckpts and midi will be saved here
@@ -142,6 +146,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                         )
     print('len dataset', len(dataset), len(dataset.data))
     append_to_file(score_log_path, f'Dataset instruments: {dataset.instruments}')
+    append_to_file(score_log_path, f'Dataset groups: {train_groups}')
     append_to_file(score_log_path, f'Total: {len(dataset.instruments)} instruments')
 
     #####
@@ -359,6 +364,34 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     torch.save(optimizer.state_dict(), os.path.join(logdir, 'last-optimizer-state.pt'))
     torch.save({'instrument_mapping': dataset.instruments},
                        os.path.join(logdir, 'instrument_mapping.pt'.format(epoch)))
+    
+
+    if config['make_evaluation']:
+        transcriber.zero_grad()
+        print("cuda mem info:")
+        print(torch.cuda.mem_get_info())
+        torch.cuda.empty_cache()
+        eval_inference_dir = os.path.join(logdir, 'eval_inference')
+        os.makedirs(eval_inference_dir, exist_ok=True)
+        tsv_list = []
+        midi_transcribed_list = []
+        with torch.no_grad():
+            for flac, tsv in dataset.eval_file_list:
+                if '#0' not in  flac:
+                    continue
+                midi_path = inference_single_flac(parallel_transcriber, flac, dataset.instruments, eval_inference_dir, config['modulated_transcriber'])
+                midi_transcribed_list.append(midi_path)
+                tsv_list.append(tsv)
+        output_path_evaluation = os.path.join(logdir, "evaluation_results.txt")
+        with open(output_path_evaluation, 'w') as f:
+            with redirect_stdout(f):
+                evaluate_file(midi_transcribed_list, tsv_list, dataset.instruments, conversion_map)
+        add_run_to_metadata_dir(logdir, META_DATA_DIR)
+        
+            
+    
+    
+    
     
 
 if __name__ == '__main__':
