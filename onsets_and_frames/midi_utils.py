@@ -155,6 +155,9 @@ def append_track_multi(file, pitches, intervals, velocities, ins, single_ins=Fal
     chan = len(file.tracks) - 1
     if chan >= DRUM_CHANNEL:
         chan += 1
+    if chan > 15:
+        print(f"invalid chan {chan}")
+        chan = 15
     track.append(Message('program_change', channel=chan, program=ins if not single_ins else 0, time=0))
 
     ticks_per_second = file.ticks_per_beat * 2.0
@@ -392,7 +395,7 @@ def parse_midi_multi(path, force_instrument=None):
 
 def save_midi_alignments_and_predictions(save_path, data_path, inst_mapping,
                                          aligned_onsets, aligned_frames,
-                                         onset_pred_np, frame_pred_np, prefix='', use_time=True):
+                                         onset_pred_np, frame_pred_np, prefix='', use_time=True, group=None):
     inst_only = len(inst_mapping) * N_KEYS
     time_now = datetime.now().strftime('%y%m%d-%H%M%S') if use_time else ''
     if len(prefix) > 0:
@@ -456,4 +459,13 @@ def save_midi_alignments_and_predictions(save_path, data_path, inst_mapping,
                     onset_label[:, : inst_only], frame_label[:, : inst_only],
                     64. * onset_label[:, : inst_only],
                     inst_mapping=inst_mapping)
+    if group is not None:
+        gorup_path = os.path.join(save_path, 'pred_alignment_max', group)
+        file_name = os.path.basename(data_path).replace('.flac', '_pred_align_max.mid')
+        os.makedirs(gorup_path, exist_ok=True)
+        frames2midi(os.path.join(gorup_path, file_name),
+                    onset_label[:, : inst_only], frame_label[:, : inst_only],
+                    64. * onset_label[:, : inst_only],
+                    inst_mapping=inst_mapping)
+        
     

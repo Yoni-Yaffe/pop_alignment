@@ -134,6 +134,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     print("Conversion map:", conversion_map)
     print("Instrument map:", instrument_map)
     dataset = EMDATASET(audio_path=train_data_path,
+                        tsv_path=config['tsv_dir'],
                            labels_path=labels_path,
                            groups=train_groups,
                             sequence_length=sequence_length,
@@ -142,7 +143,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                             instrument_map=instrument_map,
                             conversion_map=conversion_map,
                             pitch_shift=config['pitch_shift'],
-                            prev_inst_mapping=config['prev_inst_mapping']
+                            prev_inst_mapping=config['prev_inst_mapping'],
+                            keep_eval_files=config['make_evaluation']
                         )
     print('len dataset', len(dataset), len(dataset.data))
     append_to_file(score_log_path, f'Dataset instruments: {dataset.instruments}')
@@ -400,7 +402,7 @@ if __name__ == '__main__':
     else:
         logdir = sys.argv[1]
         yaml_path = os.path.join(logdir, 'run_config.yaml')
-    
+    print("yaml path:", yaml_path)
     with open(yaml_path, 'r') as fp:
         yaml_config = yaml.load(fp, Loader=yaml.FullLoader)
         

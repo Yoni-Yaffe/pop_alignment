@@ -16,6 +16,7 @@ import time
 class EMDATASET(Dataset):
     def __init__(self,
                  audio_path='NoteEM_audio',
+                 tsv_path='NoteEM_tsv',
                  labels_path='NoteEm_labels',
                  groups=None, sequence_length=None, seed=42, device=DEFAULT_DEVICE,
                  instrument_map=None, update_instruments=False, transcriber=None,
@@ -25,6 +26,7 @@ class EMDATASET(Dataset):
                  n_eval=1,
                  prev_inst_mapping=None):
         self.audio_path = audio_path
+        self.tsv_path = tsv_path
         self.labels_path = labels_path
         self.sequence_length = sequence_length
         self.device = device
@@ -62,11 +64,13 @@ class EMDATASET(Dataset):
 
     def files(self, groups, pitch_shift=True, keep_eval_files=True, n_eval=1):
         self.path = self.audio_path
-        tsvs_path = 'NoteEM_tsv'
+        tsvs_path = self.tsv_path
+        print("tsv path", tsvs_path)
         res = []
+        # print("keep eval files", keep_eval_files)
+        # print("n eval", n_eval)
         for group in groups:
-            print("keep eval files", keep_eval_files)
-            print("n eval", n_eval)
+
             tsvs = os.listdir(tsvs_path + os.sep + group)
             tsvs = sorted(tsvs)
             if keep_eval_files:
@@ -248,9 +252,10 @@ class EMDATASET(Dataset):
                 if self.prev_inst_mapping is not None:
                     zero_labels = torch.zeros((unaligned_label.shape[0], N_KEYS * len(self.prev_inst_mapping)))
                     unaligned_label = torch.cat((zero_labels, unaligned_label), dim=1)
+                group = flac.split(os.sep)[-2].split('#')[0]
                 data = dict(path=self.labels_path + os.sep + flac.split(os.sep)[-1],
                             audio=audio, unaligned_label=unaligned_label,
-                            label=unaligned_label)
+                            label=unaligned_label, group=group)
                 torch.save(data, self.labels_path + os.sep + flac.split(os.sep)[-1]
                                .replace('.flac', '.pt').replace('.mp3', '.pt'))
                 self.pts[flac] = data
@@ -393,10 +398,15 @@ class EMDATASET(Dataset):
             # eliminate instruments that do not exist in the unaligned midi
             # inactive_instruments, active_instruments_list = get_inactive_instruments(unaligned_onsets, len(aligned_onsets))
             # onset_pred_np[inactive_instruments] = 0
+            if first and self.prev_inst_mapping is not None:
+                # print("onset pred np shape: ", onset_pred_np.shape)
+                # print(f"zero pred at {N_KEYS * len(self.prev_inst_mapping)}: {-N_KEYS}")
+                onset_pred_np[:, N_KEYS * len(self.prev_inst_mapping) - 4 * N_KEYS: -N_KEYS] = 0
             pseudo_onsets = (onset_pred_np >= POS) & (~aligned_onsets)
             inst_only = len(self.instruments) * N_KEYS
             if first: # do not use pseudo labels for instruments in first labelling iteration since the model doesn't distinguish yet
                 pseudo_onsets[:, : inst_only] = 0
+     
             onset_label = np.maximum(pseudo_onsets, aligned_onsets)
 
             onsets_unknown = (onset_pred_np >= 0.5) & (~onset_label) # for mask
@@ -429,7 +439,7 @@ class EMDATASET(Dataset):
             if to_save is not None:
                 save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
                                          aligned_onsets, aligned_frames,
-                                         onset_pred_np, frame_pred_np, prefix='')
+                                         onset_pred_np, frame_pred_np, prefix='', group=data['group'])
                 # time_now = datetime.now().strftime('%y%m%d-%H%M%S')
                 # frames2midi(to_save + os.sep + data['path'].replace('.flac', '').split(os.sep)[-1] + '_alignment_' + time_now + '.mid',
                 #             aligned_onsets[:, : inst_only], aligned_frames[:, : inst_only],
@@ -466,7 +476,7 @@ class EMDATASET(Dataset):
                         os.makedirs(to_save + '/BEST_BON', exist_ok=True)
                         save_midi_alignments_and_predictions(to_save + '/BEST_BON', data['path'], self.instruments,
                                                              aligned_onsets, aligned_frames,
-                                                             onset_pred_np, frame_pred_np, prefix='BEST_BON')
+                                                             onset_pred_np, frame_pred_np, prefix='BEST_BON', group=data['group'])
 
             velocity_pred = velocity_pred.detach().squeeze().cpu()
             # velocity_pred = torch.from_numpy(new_vels)
