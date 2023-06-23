@@ -71,7 +71,10 @@ def get_max_matching(batch_onset_array):
         if i in d:
             res[i] = d[i]
         else:
-            res[i] = np.random.choice(np.arange(inst)[batch_onset_array[i]])
+            if np.sum(batch_onset_array[i]) == 0:
+                np.random.choice(np.arange(inst))
+            else:
+                res[i] = np.random.choice(np.arange(inst)[batch_onset_array[i]])
     return res
 
     
@@ -144,7 +147,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                             conversion_map=conversion_map,
                             pitch_shift=config['pitch_shift'],
                             prev_inst_mapping=config['prev_inst_mapping'],
-                            keep_eval_files=config['make_evaluation']
+                            keep_eval_files=config['make_evaluation'],
+                            evaluation_list=config['evaluation_list']
                         )
     print('len dataset', len(dataset), len(dataset.data))
     append_to_file(score_log_path, f'Dataset instruments: {dataset.instruments}')
