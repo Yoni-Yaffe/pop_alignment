@@ -1,9 +1,13 @@
 import os
 import yaml
 from datetime import datetime
+import argparse
 
 if __name__ == "__main__":
-    with open("config.yaml", 'r') as fp:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--yaml_path', default='config.yaml')
+    args = parser.parse_args()
+    with open(args.yaml_path, 'r') as fp:
         config = yaml.safe_load(fp)
     slurm_config = config['slurm_params']
     sbatch_command = 'sbatch'

@@ -6,3 +6,4 @@
 *.pyc
 *.pyo
 *.pt
+yaml_configs/*
