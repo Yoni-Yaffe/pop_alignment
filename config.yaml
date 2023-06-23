@@ -13,20 +13,20 @@ slurm_params:
   constraint: "titan_xp"
 
 train_params:
-  # prev_inst_mapping: null
+  prev_inst_mapping: null
   # prev_inst_mapping: [0, 40, 47, 24, 60]
-  prev_inst_mapping: [0, 6, 10, 19, 24, 40, 41, 42, 43, 44, 45, 46, 47, 48, 52, 58, 60, 61, 64, 68, 70, 71, 73, 0, 24, 40, 60]
-  # transcriber_ckpt: "ckpts/model-70.pt"
+  # prev_inst_mapping: [0, 6, 10, 19, 24, 40, 41, 42, 43, 44, 45, 46, 47, 48, 52, 58, 60, 61, 64, 68, 70, 71, 73, 0, 24, 40, 60]
+  transcriber_ckpt: "ckpts/model-70.pt"
   # transcriber_ckpt: "ckpts/trained_ckpts/transcriber_iteration_60001.pt"
   # transcriber_ckpt: "ckpts/trained_ckpts/transcriber_musicnet_and_museopen_4_inst.pt"  # 
-  transcriber_ckpt: "/vol/scratch/jonathany/ckpts/transcriber-220315-040403/model-19.pt"  # 
+  # transcriber_ckpt: "/vol/scratch/jonathany/ckpts/transcriber-220315-040403/model-19.pt"  # 
   multi_ckpt: False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
 
   checkpoint_interval: 6 # how often to save checkpoint
   batch_size: 8
 
   # iterations = 1000 # per epoch
-  iterations: 1 # 00_001
+  iterations: 100_001
   learning_rate: 0.0001
   learning_rate_decay_steps: 10000
   clip_gradient_norm: 3
@@ -35,23 +35,28 @@ train_params:
   epochs: 1
   # groups: ['ABBA', 'Abbey Road', 'Creedence', 'David Bowie', 'Led Zeppelin', 'Madonna', 'Misc', 'Pink Floyd', 'Queen Large', 'White Album']
   # groups: ["Rousset Goldberg"] #, "Bach Trio Sonatas"]
-  groups: ["full_pop_dataset"]
+  # groups: ["full_pop_dataset"]
   # groups: ["full_museopen", "full_musicnet_with_piano_random_shift"]
-  pitch_shift: true
+  groups: ["full_musicnet_with_piano_random_shift"]
+  pitch_shift: false
   psuedo_labels: false
   use_pop_conversion_map: false
   use_classic_conversion_map: true
-  use_labels_in_dataset_dir: false
+  use_labels_in_dataset_dir: true
   debug_segments: false
-  modulated_transcriber: false
+  modulated_transcriber: true
   group_modulation: false  # relevant only when modulated_transcriber is set to true 
-  update_pts: true
-  make_evaluation: false
+  update_pts: false
+  make_evaluation: true
+  evaluation_list: ['1759.flac', '1819.flac', '2106.flac','2191.flac', '2298.flac', '2303.flac', '2382.flac','2416.flac', '2556.flac', '2628.flac']
+  # evaluation_list: ['No Surprises#0.flac', 'Karma Police#0.flac']
+
   # tsv_dir: "./NoteEM_tsv_updated_labels"
   tsv_dir: "NoteEM_tsv"
 
+  dataset_name: "full_musicnet_with_piano_random_shift"
   # dataset_name: "POP_AUDIO_SHIFT"
-  dataset_name: "full_pop_dataset"
+  # dataset_name: "full_pop_dataset"
   # dataset_name: "museopen_and_musicnet"
   # dataset_name: "museopen_dataset"
 
@@ -75,4 +80,4 @@ command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_t
 # run_name: "Orchestal_and_Rouset_prev_model"
 # run_name: "inference_test"
 # run_name: "Rousette_goldberg_debug"
-run_name: "get_pop_dataset_labels"
+run_name: "musicnet_no_pitch_shift_nweight3_modulated_transcriber"

@@ -40,7 +40,7 @@ if __name__ == "__main__":
     # res_path = '/vol/scratch/jonathany/datasets/full_museopen/noteEM_audio'
     # merge_audio_dir(audio_path, res_path, 'full_museopen')
     src_dir = '/vol/scratch/jonathany/datasets/Museopen16'
-    dst = '/vol/scratch/jonathany/datasets/Bach Trio Sonatas/noteEM_audio'
+    dst = '/vol/scratch/jonathany/datasets/all_museopen_groups_group/noteEM_audio'
     add_virtual_paths(src_dir_path=src_dir, merged_dir_path=dst)
             
     
