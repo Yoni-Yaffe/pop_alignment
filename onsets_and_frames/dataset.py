@@ -24,6 +24,7 @@ class EMDATASET(Dataset):
                  pitch_shift=True,
                  keep_eval_files=True,
                  n_eval=1,
+                 evaluation_list=None,
                  prev_inst_mapping=None):
         self.audio_path = audio_path
         self.tsv_path = tsv_path
@@ -34,7 +35,7 @@ class EMDATASET(Dataset):
         self.groups = groups
         self.conversion_map = conversion_map
         self.eval_file_list = []
-        self.file_list = self.files(self.groups, pitch_shift=pitch_shift, keep_eval_files=keep_eval_files, n_eval=n_eval)
+        self.file_list = self.files(self.groups, pitch_shift=pitch_shift, keep_eval_files=keep_eval_files, n_eval=n_eval, evaluation_list=evaluation_list)
         print("file_list", self.file_list)
         print("eval_file list", self.eval_file_list)
         self.prev_inst_mapping = prev_inst_mapping
@@ -62,20 +63,25 @@ class EMDATASET(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def files(self, groups, pitch_shift=True, keep_eval_files=True, n_eval=1):
+    def files(self, groups, pitch_shift=True, keep_eval_files=True, n_eval=1, evaluation_list=None):
         self.path = self.audio_path
         tsvs_path = self.tsv_path
         print("tsv path", tsvs_path)
+        print("Evaluation list", evaluation_list)
         res = []
-        # print("keep eval files", keep_eval_files)
-        # print("n eval", n_eval)
+        print("keep eval files", keep_eval_files)
+        print("n eval", n_eval)
         for group in groups:
 
             tsvs = os.listdir(tsvs_path + os.sep + group)
             tsvs = sorted(tsvs)
-            if keep_eval_files:
+            if keep_eval_files and evaluation_list is None:
                 eval_tsvs = tsvs[:n_eval]
                 tsvs = tsvs[n_eval:]
+            elif keep_eval_files and evaluation_list is not None:
+                eval_tsvs_names = [i.split('#')[0].split('.flac')[0].split('.tsv')[0] for i in evaluation_list]
+                eval_tsvs = [i for i in tsvs if i.split('#')[0].split('.tsv')[0] in eval_tsvs_names]
+                tsvs = [i for i in tsvs if i not in eval_tsvs]
             else:
                 eval_tsvs = []
             tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in tsvs]
@@ -88,12 +94,19 @@ class EMDATASET(Dataset):
                 fls = os.listdir(curr_fls_pth)
                 # print(f"files names before\n {fls}")
                 fls = [i for i in fls if i.split('#')[0] in tsvs_names] # in case we dont have the corresponding midi
+                fls_names = [i.split('#')[0].split('.flac')[0] for i in fls]
+                tsvs = [i for i in tsvs if i.split('.tsv')[0].split('#')[0] in fls_names]
+                assert len(tsvs) == len(fls)
                 # print(f"files names after\n {fls}")
                 fls = sorted(fls)
+                
                 
                 eval_fls = os.listdir(curr_fls_pth)
                 # print(f"files names\n {eval_fls}")
                 eval_fls = [i for i in eval_fls if i.split('#')[0] in eval_tsvs_names] # in case we dont have the corresponding midi
+                eval_fls_names = [i.split('#')[0] for i in eval_fls]
+                eval_tsvs = [i for i in eval_tsvs if i.split('.tsv')[0].split('#')[0] in eval_fls_names]
+                assert len(eval_fls_names) == len(eval_tsvs_names)
                 # print(f"files names\n {eval_fls}")
                 eval_fls = sorted(eval_fls)
                 for f, t in zip(fls, tsvs):
