@@ -119,7 +119,7 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
     print(f"saved midi to {save_path}")
     return save_path
 
-def generate_labels(transcriber_ckpt, flac_path, config):
+def generate_labels(transcriber_ckpt, flac_dir, config):
     # inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 43, 45, 6, 60]
     # inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 45, 6, 60]
     inst_mapping = config['inst_mapping']
@@ -154,6 +154,17 @@ def generate_labels(transcriber_ckpt, flac_path, config):
                                   modulated_transcriber=config['modulated_transcriber'])
 
 
+def generate_labels_wrapper(yaml_config: dict):
+    config = yaml_config['inference_params']
+    config['out_dir'] = yaml_config['logdir']
+    ckpt = 'ckpts/transcriber_iteration_60001.pt'
+    ckpt = config['ckpt']
+    flac_dir = config['audio_files_dir']
+    # flac_path = 'Champions_League#0.flac'
+    flac_path = 'Westworld#0.flac'
+    generate_labels(ckpt, flac_dir, config)
+
+
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         yaml_path = 'config.yaml'
@@ -163,12 +174,4 @@ if __name__ == '__main__':
 
     with open(yaml_path, 'r') as fp:
         yaml_config = yaml.load(fp, Loader=yaml.FullLoader)
-        
-    config = yaml_config['inference_params']
-    config['out_dir'] = yaml_config['logdir']
-    ckpt = 'ckpts/transcriber_iteration_60001.pt'
-    ckpt = config['ckpt']
-    flac_dir = config['audio_files_dir']
-    # flac_path = 'Champions_League#0.flac'
-    flac_path = 'Westworld#0.flac'
-    generate_labels(ckpt, flac_dir, config)
+    generate_labels_wrapper(yaml_config)

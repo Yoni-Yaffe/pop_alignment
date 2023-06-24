@@ -398,22 +398,20 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     
     
     
-    
-
-if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        yaml_path = 'config.yaml'
-    else:
-        logdir = sys.argv[1]
-        yaml_path = os.path.join(logdir, 'run_config.yaml')
-    print("yaml path:", yaml_path)
-    with open(yaml_path, 'r') as fp:
-        yaml_config = yaml.load(fp, Loader=yaml.FullLoader)
+def train_wrapper(yaml_config: dict, logdir):
+    # if len(sys.argv) == 1:
+    #     yaml_path = 'config.yaml'
+    # else:
+    #     logdir = sys.argv[1]
+    #     yaml_path = os.path.join(logdir, 'run_config.yaml')
+    # print("yaml path:", yaml_path)
+    # with open(yaml_path, 'r') as fp:
+    #     yaml_config = yaml.load(fp, Loader=yaml.FullLoader)
         
-    if 'logdir' not in yaml_config:
-        print('did not find a log dir')
-        logdir = f"/vol/scratch/jonathany/runs/{yaml_config['run_name']}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
-        os.makedirs(logdir, exist_ok=True)
+    # if 'logdir' not in yaml_config:
+    #     print('did not find a log dir')
+    #     logdir = f"/vol/scratch/jonathany/runs/{yaml_config['run_name']}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
+    #     os.makedirs(logdir, exist_ok=True)
     # transcriber_ckpt = 'ckpts/model-70.pt'
     # multi_ckpt = False # Flag if the ckpt was trained on pitch only or instrument-sensitive. The provided checkpoints were trained on pitch only.
     config = yaml_config['train_params']
@@ -445,4 +443,22 @@ if __name__ == '__main__':
 
     train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
           clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt, config)
+    
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        yaml_path = 'config.yaml'
+    else:
+        logdir = sys.argv[1]
+        yaml_path = os.path.join(logdir, 'run_config.yaml')
+
+    with open(yaml_path, 'r') as fp:
+        yaml_config = yaml.load(fp, Loader=yaml.FullLoader)
+    
+    if 'logdir' not in yaml_config:
+        print('did not find a log dir')
+        logdir = f"/vol/scratch/jonathany/runs/{yaml_config['run_name']}_transcriber-{datetime.now().strftime('%y%m%d-%H%M%S')}" # ckpts and midi will be saved here
+        os.makedirs(logdir, exist_ok=True)
+        
+    train_wrapper(yaml_config, logdir)
     

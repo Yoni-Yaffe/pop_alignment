@@ -16,11 +16,12 @@ if __name__ == "__main__":
     slurm_config['output'] = os.path.join(logdir, slurm_config['output'])
     slurm_config['error'] = os.path.join(logdir, slurm_config['error'])
     os.makedirs(logdir, exist_ok=True)
-    with open(os.path.join(logdir, 'run_config.yaml'), 'w') as fp:
+    new_yaml_path = os.path.join(logdir, 'run_config.yaml')
+    with open(new_yaml_path, 'w') as fp:
         yaml.dump(config, fp)
     
     for param in slurm_config:
         sbatch_command += f' --{param}={slurm_config[param]}'
-    sbatch_command += f" {config['command']} {logdir}"
+    sbatch_command += f" {config['command']} --logdir {logdir} --yaml_path {new_yaml_path}"
     os.system(sbatch_command)
     
