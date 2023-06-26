@@ -41,8 +41,10 @@ train_params:
   pitch_shift: false
   psuedo_labels: false
   use_pop_conversion_map: false
-  use_classic_conversion_map: true
-  use_labels_in_dataset_dir: true
+  use_classic_conversion_map: false
+  use_constant_conversion_map: true
+  use_labels_in_dataset_dir: false
+  
   debug_segments: false
   modulated_transcriber: true
   group_modulation: false  # relevant only when modulated_transcriber is set to true 
@@ -76,6 +78,7 @@ inference_params:
 # logdir: "/tmp"
 
 command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_train"
+run_type: "train"
 # command: "/specific/a/home/cc/students/cs/jonathany/research/pop_alignment/run_generate_labels"
 # run_name: "Orchestal_and_Rouset_prev_model"
 # run_name: "inference_test"
