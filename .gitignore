@@ -7,3 +7,4 @@
 *.pyo
 *.pt
 yaml_configs/*
+*.ipynb
