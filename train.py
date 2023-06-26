@@ -14,7 +14,7 @@ from onsets_and_frames.dataset import EMDATASET
 from torch.nn import DataParallel
 from onsets_and_frames.transcriber import load_weights, load_weights_pop, modulated_load_weights
 import time
-from conversion_maps import pop_conversion_map, classic_conversion_map
+from conversion_maps import pop_conversion_map, classic_conversion_map, constant_conversion_map
 import sys
 import yaml
 import random
@@ -132,6 +132,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         conversion_map = pop_conversion_map.conversion_map
     elif 'use_classic_conversion_map' in config and config['use_classic_conversion_map']:
         conversion_map = classic_conversion_map.conversion_map
+    elif 'use_constant_conversion_map' in config and config['use_constant_conversion_map']:
+        conversion_map = constant_conversion_map.conversion_map
         
     instrument_map = None
     print("Conversion map:", conversion_map)
