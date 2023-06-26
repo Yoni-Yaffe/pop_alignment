@@ -7,11 +7,11 @@ import argparse
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--logdir', default=None)
-    parser.add_argument('--yaml_path', default=None)
+    parser.add_argument('--yaml_config', default=None)
     args = parser.parse_args()
     
     logdir = args.logdir
-    yaml_path = args.yaml_path
+    yaml_path = args.yaml_config
     if logdir is None:
         raise RuntimeError("no logdir provided")
     if yaml_path is None:

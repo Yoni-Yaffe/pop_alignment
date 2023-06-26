@@ -5,9 +5,9 @@ import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--yaml_path', default='config.yaml')
+    parser.add_argument('--yaml_config', default='config.yaml')
     args = parser.parse_args()
-    with open(args.yaml_path, 'r') as fp:
+    with open(args.yaml_config, 'r') as fp:
         config = yaml.safe_load(fp)
     slurm_config = config['slurm_params']
     sbatch_command = 'sbatch'
@@ -22,6 +22,6 @@ if __name__ == "__main__":
     
     for param in slurm_config:
         sbatch_command += f' --{param}={slurm_config[param]}'
-    sbatch_command += f" {config['command']} --logdir {logdir} --yaml_path {new_yaml_path}"
+    sbatch_command += f" {config['command']} --logdir {logdir} --yaml_config {new_yaml_path}"
     os.system(sbatch_command)
     

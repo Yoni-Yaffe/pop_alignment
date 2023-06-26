@@ -1,0 +1,4 @@
+#!/bin/bash
+/vol/scratch/jonathany/venv_38/bin/python -V
+/vol/scratch/jonathany/venv_38/bin/python main.py "$@"
+echo Finished
