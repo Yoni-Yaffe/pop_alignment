@@ -11,6 +11,7 @@ from datetime import datetime
 from onsets_and_frames.midi_utils import *
 from onsets_and_frames.utils import *
 import time
+from onsets_and_frames.allignment import labels_of_previous_model
 
 
 class EMDATASET(Dataset):
@@ -25,7 +26,10 @@ class EMDATASET(Dataset):
                  keep_eval_files=True,
                  n_eval=1,
                  evaluation_list=None,
-                 prev_inst_mapping=None):
+                 prev_inst_mapping=None,
+                 reference_pitch_transcriber=None,
+                 reference_instrument_transcriber=None,
+                 only_eval=False):
         self.audio_path = audio_path
         self.tsv_path = tsv_path
         self.labels_path = labels_path
@@ -36,6 +40,8 @@ class EMDATASET(Dataset):
         self.conversion_map = conversion_map
         self.eval_file_list = []
         self.file_list = self.files(self.groups, pitch_shift=pitch_shift, keep_eval_files=keep_eval_files, n_eval=n_eval, evaluation_list=evaluation_list)
+        self.reference_pitch_transcriber = reference_pitch_transcriber
+        self.reference_instrument_transcriber = reference_instrument_transcriber
         print("file_list", self.file_list)
         print("eval_file list", self.eval_file_list)
         self.prev_inst_mapping = prev_inst_mapping
@@ -46,6 +52,8 @@ class EMDATASET(Dataset):
             if update_instruments:
                 self.add_instruments()
         self.transcriber = transcriber
+        if only_eval:
+            return
         self.load_pts(self.file_list)
         if self.prev_inst_mapping is not None:
             self.instruments = self.prev_inst_mapping + self.instruments
@@ -133,6 +141,8 @@ class EMDATASET(Dataset):
                 curr_instruments = {conversion_map[c] if c in conversion_map else c for c in curr_instruments}
             instruments = instruments.union(curr_instruments)
         instruments = [int(elem) for elem in instruments if elem < 115]
+        if conversion_map is not None:
+            instruments = [i for i in instruments if i in conversion_map]
         instruments = list(set(instruments))
         if 0 in instruments:
             piano_ind = instruments.index(0)
@@ -263,12 +273,32 @@ class EMDATASET(Dataset):
                 midi = np.loadtxt(tsv, delimiter='\t', skiprows=1)
                 unaligned_label = midi_to_frames(midi, self.instruments, conversion_map=self.conversion_map)
                 if self.prev_inst_mapping is not None:
+                    # assert self.reference_pitch_transcriber is not None and self.reference_instrument_transcriber is not None
                     zero_labels = torch.zeros((unaligned_label.shape[0], N_KEYS * len(self.prev_inst_mapping)))
+                    # audio_inp = audio.float() / 32768.
+                    # with torch.no_grad():
+                    #     prev_model_labels = labels_of_previous_model(audio_inp=audio_inp, inst_transcriber=self.reference_instrument_transcriber,
+                    #                                               pitch_transcriber=self.reference_pitch_transcriber)
+                    # labels = torch.from_numpy(prev_model_labels[:, :-N_KEYS]).byte()
+                    print("prev model labels shape")
                     unaligned_label = torch.cat((zero_labels, unaligned_label), dim=1)
+                    # if zero_labels.shape != labels.shape:
+                    #     raise RuntimeError(f"shapes dont match, {zero_labels.shape}, {labels.shape}")
+                    # if unaligned_label.shape[0] < labels.shape[0]:
+                    #     difference = labels.shape[0] - unaligned_label.shape[0]
+                    #     unaligned_label = torch.cat((unaligned_label, torch.zeros((difference, unaligned_label.shape[1]))), dim=0)
+                    # else:
+                    #     difference = unaligned_label.shape[0] - labels.shape[0]
+                    #     labels = torch.cat((labels, torch.zeros((difference, labels.shape[1]))), dim=0)
+                    # if labels.shape[0] != unaligned_label.shape[0]:
+                    #     raise RuntimeError(f"unmatching shapes, {labels.shape}, {unaligned_label.shape}")
+                    # unaligned_label = torch.cat((labels, unaligned_label), dim=1)
+                    
                 group = flac.split(os.sep)[-2].split('#')[0]
                 data = dict(path=self.labels_path + os.sep + flac.split(os.sep)[-1],
                             audio=audio, unaligned_label=unaligned_label,
                             label=unaligned_label, group=group)
+                
                 torch.save(data, self.labels_path + os.sep + flac.split(os.sep)[-1]
                                .replace('.flac', '.pt').replace('.mp3', '.pt'))
                 self.pts[flac] = data
@@ -283,7 +313,7 @@ class EMDATASET(Dataset):
     Bag of notes distance is computed based on pitch only.
     '''
     def update_pts(self, transcriber, POS=1.1, NEG=-0.001, FRAME_POS=0.5,
-                   to_save=None, first=False, update=True, BEST_BON=False):
+                   to_save=None, first=False, update=True, BEST_BON=False, reference_transcriber=None, reference_inst_transcriber=None):
         print('Updating pts...')
         print('POS, NEG', POS, NEG)
         if to_save is not None:
@@ -320,6 +350,7 @@ class EMDATASET(Dataset):
                 mel = melspectrogram(audio_inp.reshape(-1, audio_inp.shape[-1])[:, :-1]).transpose(-1, -2)
                 onset_pred, offset_pred, _, frame_pred, velocity_pred = transcriber(mel)
             print('done predicting.')
+            
             # We assume onset predictions are of length N_KEYS * (len(instruments) + 1),
             # first N_KEYS classes are the first instrument, next N_KEYS classes are the next instrument, etc.,
             # and last N_KEYS classes are for pitch regardless of instrument
@@ -335,8 +366,24 @@ class EMDATASET(Dataset):
 
             onset_pred_np = onset_pred.numpy()
             frame_pred_np = frame_pred.numpy()
-
-            ####
+            if reference_transcriber:
+                print("getting reference labels " + '!'*200)
+                from onsets_and_frames.allignment import get_model_labels
+                audio_inp = data['audio'].float() / 32768.
+                reference_pitch_onset_pred_np, reference_pitch_frame_pred_np = get_model_labels(reference_transcriber, audio_inp)
+                reference_inst_onset_pred_np, reference_inst_frame_pred_np = get_model_labels(reference_inst_transcriber, audio_inp)
+                print("reference_inst_onset_shape", reference_inst_onset_pred_np.shape)
+                print("reference_pitch_onset_shape", reference_pitch_onset_pred_np.shape)
+                print("reference pred shape:", reference_pitch_frame_pred_np.shape)
+                onset_pred_np[:, -N_KEYS:] = reference_pitch_onset_pred_np[:, -N_KEYS:]####
+                frame_pred_np[:, -N_KEYS:] = reference_pitch_frame_pred_np[:, -N_KEYS:]
+                
+                reference_inst_onset_pred_np[:, -N_KEYS:] = reference_pitch_onset_pred_np[:, -N_KEYS:]
+                # reference_inst_onset_pred_np = max_inst(reference_inst_onset_pred_np)
+                print("inst transcriber onset pred sum:", (reference_inst_onset_pred_np[:, :-N_KEYS] > POS).sum())
+                onset_pred_np[:, :len(self.prev_inst_mapping) * N_KEYS] = reference_inst_onset_pred_np[:, :-N_KEYS]
+                
+                
             pred_bag_of_notes = (onset_pred_np[:, -N_KEYS:] >= 0.5).sum(axis=0)
             gt_bag_of_notes = unaligned_onsets[:, -N_KEYS:].astype(bool).sum(axis=0)
             bon_dist = (((pred_bag_of_notes - gt_bag_of_notes) ** 2).sum()) ** 0.5
@@ -369,6 +416,9 @@ class EMDATASET(Dataset):
 
             # We go over onsets (t, f) in the unaligned midi. For each onset, we find its approximate time based on DTW,
             # then find its precise time with likelihood local max
+            # if self.prev_inst_mapping is not None:
+            #     unaligned_prev = unaligned_onsets[:, :N_KEYS * len(self.prev_inst_mapping)]
+            #     unaligned_onsets[:, :N_KEYS * len(self.prev_inst_mapping)] = 0
             for t, f in zip(*unaligned_onsets.nonzero()):
                 t_comp = t // DTW_FACTOR
                 t_src = matches2[t_comp]
@@ -411,16 +461,26 @@ class EMDATASET(Dataset):
             # eliminate instruments that do not exist in the unaligned midi
             # inactive_instruments, active_instruments_list = get_inactive_instruments(unaligned_onsets, len(aligned_onsets))
             # onset_pred_np[inactive_instruments] = 0
-            if first and self.prev_inst_mapping is not None:
-                # print("onset pred np shape: ", onset_pred_np.shape)
-                # print(f"zero pred at {N_KEYS * len(self.prev_inst_mapping)}: {-N_KEYS}")
-                onset_pred_np[:, N_KEYS * len(self.prev_inst_mapping) - 4 * N_KEYS: -N_KEYS] = 0
+            # if first and self.prev_inst_mapping is not None:
+            #     # print("onset pred np shape: ", onset_pred_np.shape)
+            #     # print(f"zero pred at {N_KEYS * len(self.prev_inst_mapping)}: {-N_KEYS}")
+            #     onset_pred_np[:, N_KEYS * len(self.prev_inst_mapping) - 4 * N_KEYS: -N_KEYS] = 0
+            
+            print("sum1, ", (onset_pred_np >= POS)[:, :len(self.prev_inst_mapping) * N_KEYS].sum())
             pseudo_onsets = (onset_pred_np >= POS) & (~aligned_onsets)
+            print("sum2 ", np.sum(pseudo_onsets[:, :len(self.prev_inst_mapping) * N_KEYS]))
             inst_only = len(self.instruments) * N_KEYS
             if first: # do not use pseudo labels for instruments in first labelling iteration since the model doesn't distinguish yet
-                pseudo_onsets[:, : inst_only] = 0
+                if self.prev_inst_mapping is None:
+                    pseudo_onsets[:, : inst_only] = 0
+                else:
+                    print("didnt delete last labels")
+                    pseudo_onsets[:, len(self.prev_inst_mapping) * N_KEYS: -N_KEYS] = 0
      
             onset_label = np.maximum(pseudo_onsets, aligned_onsets)
+           
+            # if self.prev_inst_mapping is not None:
+            #     onset_label[:, :len(self.prev_inst_mapping) * N_KEYS] = unaligned_prev
 
             onsets_unknown = (onset_pred_np >= 0.5) & (~onset_label) # for mask
             if first: # do not use mask for instruments in first labelling iteration since the model doesn't distinguish yet between instruments
@@ -447,12 +507,17 @@ class EMDATASET(Dataset):
 
             label = np.maximum(2 * frame_label, offset_label)
             label = np.maximum(3 * onset_label, label).astype(np.uint8)
-            
+            print("sum3 ", np.sum(label[:, :len(self.prev_inst_mapping) * N_KEYS] >= 0.5))
+            print("sum first instruments:", np.sum(label[:, :len(self.prev_inst_mapping)*N_KEYS]))
             
             if to_save is not None:
                 save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
                                          aligned_onsets, aligned_frames,
                                          onset_pred_np, frame_pred_np, prefix='', group=data['group'])
+                save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
+                                         label, frame_label,
+                                         onset_pred_np, frame_pred_np, prefix='final_labels', group=data['group'])
+                
                 # time_now = datetime.now().strftime('%y%m%d-%H%M%S')
                 # frames2midi(to_save + os.sep + data['path'].replace('.flac', '').split(os.sep)[-1] + '_alignment_' + time_now + '.mid',
                 #             aligned_onsets[:, : inst_only], aligned_frames[:, : inst_only],
