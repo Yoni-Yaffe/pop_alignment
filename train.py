@@ -134,7 +134,26 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         conversion_map = classic_conversion_map.conversion_map
     elif 'use_constant_conversion_map' in config and config['use_constant_conversion_map']:
         conversion_map = constant_conversion_map.conversion_map
+        parallel_reference_transcriber = None
         
+    if 'reference_transcriber' in config and config['reference_transcriber']:
+        reference_transcriber = torch.load(config['reference_transcriber']).to(device)
+        set_diff(reference_transcriber.frame_stack, False)
+        set_diff(reference_transcriber.offset_stack, False)
+        set_diff(reference_transcriber.combined_stack, False)
+        if hasattr(reference_transcriber, 'velocity_stack'):
+            set_diff(reference_transcriber.velocity_stack, False)
+        parallel_reference_transcriber = DataParallel(reference_transcriber)
+    parallel_reference_inst_transcriber = None
+    if 'reference_inst_transcriber' in config and config['reference_inst_transcriber']:
+        reference_inst_transcriber = torch.load(config['reference_inst_transcriber']).to(device)
+        set_diff(reference_inst_transcriber.frame_stack, False)
+        set_diff(reference_inst_transcriber.offset_stack, False)
+        set_diff(reference_inst_transcriber.combined_stack, False)
+        if hasattr(reference_inst_transcriber, 'velocity_stack'):
+            set_diff(reference_inst_transcriber.velocity_stack, False)
+        parallel_reference_inst_transcriber = DataParallel(reference_inst_transcriber)
+    
     instrument_map = None
     print("Conversion map:", conversion_map)
     print("Instrument map:", instrument_map)
@@ -150,9 +169,13 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                             pitch_shift=config['pitch_shift'],
                             prev_inst_mapping=config['prev_inst_mapping'],
                             keep_eval_files=config['make_evaluation'],
-                            evaluation_list=config['evaluation_list']
+                            evaluation_list=config['evaluation_list'],
+                            only_eval= (iterations == 0)
+                            # reference_pitch_transcriber=parallel_reference_transcriber,
+                            # reference_instrument_transcriber=parallel_reference_inst_transcriber
                         )
-    print('len dataset', len(dataset), len(dataset.data))
+    # del parallel_reference_inst_transcriber
+    # print('len dataset', len(dataset), len(dataset.data))
     append_to_file(score_log_path, f'Dataset instruments: {dataset.instruments}')
     append_to_file(score_log_path, f'Dataset groups: {train_groups}')
     append_to_file(score_log_path, f'Total: {len(dataset.instruments)} instruments')
@@ -209,9 +232,12 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     set_diff(transcriber.frame_stack, False)
     set_diff(transcriber.offset_stack, False)
     set_diff(transcriber.combined_stack, False)
-    set_diff(transcriber.velocity_stack, False)
+    if hasattr(transcriber, 'velocity_stack'):
+        set_diff(transcriber.velocity_stack, False)
 
     parallel_transcriber = DataParallel(transcriber)
+
+        
     print("parallel transcriber", parallel_transcriber)
     optimizer = torch.optim.Adam(list(transcriber.parameters()), lr=learning_rate, weight_decay=1e-5)
     transcriber.zero_grad()
@@ -231,7 +257,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         # POS = 0.7 # Pseudo-label positive threshold (value > 1 means no pseudo label).
         # NEG = -0.1 # Pseudo-label negative threshold (value < 0 means no pseudo label). 
         if config['psuedo_labels']:
-            POS = 0.7
+            POS = 0.5
         # if epoch == 1 we do not want to make alignment
         if config['update_pts']:
             with torch.no_grad():
@@ -242,8 +268,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                                 to_save=logdir + '/alignments', # MIDI alignments and predictions will be saved here
                                 first=epoch == 1,
                                 update=True,
-                                BEST_BON=epoch > 5  # after 5 epochs, update label only if bag of notes distance improved
-                                )
+                                BEST_BON=epoch > 5,  # after 5 epochs, update label only if bag of notes distance improved
+                                reference_transcriber=parallel_reference_transcriber,
+                                reference_inst_transcriber=parallel_reference_inst_transcriber
+                                                )                                
         loader = DataLoader(dataset, batch_size, shuffle=True, drop_last=True)
 
         total_loss = []
@@ -371,7 +399,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     # keep last optimized state
     torch.save(optimizer.state_dict(), os.path.join(logdir, 'last-optimizer-state.pt'))
     torch.save({'instrument_mapping': dataset.instruments},
-                       os.path.join(logdir, 'instrument_mapping.pt'.format(epoch)))
+                       os.path.join(logdir, 'instrument_mapping.pt'))
     
 
     if config['make_evaluation']:
@@ -395,6 +423,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             with redirect_stdout(f):
                 evaluate_file(midi_transcribed_list, tsv_list, dataset.instruments, conversion_map)
         add_run_to_metadata_dir(logdir, META_DATA_DIR)
+    # if 'train_inference' in config and config['train_inference']:
+    #     pass
         
             
     

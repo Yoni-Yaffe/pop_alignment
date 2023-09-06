@@ -8,3 +8,4 @@
 *.pt
 yaml_configs/*
 *.ipynb
+*.idea
