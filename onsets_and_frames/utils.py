@@ -100,6 +100,9 @@ def get_inactive_instruments(target_onsets, T):
 
 
 def max_inst(probs):
+    if probs.shape[-1] == N_KEYS or probs.shape[-1] == N_KEYS * 2:
+        # there is only pitch
+        return probs
     keys = MAX_MIDI - MIN_MIDI + 1
     instruments = probs.shape[1] // keys
     time = len(probs)
