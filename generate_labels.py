@@ -149,7 +149,8 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
         pitch_onset_pred_np = pitch_onset_pred.numpy()
         print("pitch_onset_pred_np shape", pitch_onset_pred_np.shape)
         # print("pitch_frame_pred_np shape", pitch_frame_pred_np.shape)
-        onset_pred_np[:, -88:] = np.maximum(pitch_onset_pred_np[:, -88:], onset_pred_np[:, -88:])
+        # onset_pred_np[:, -88:] = np.maximum(pitch_onset_pred_np[:, -88:], onset_pred_np[:, -88:])
+        onset_pred_np[:, -88:] = pitch_onset_pred_np[:, -88:]
         # onset_pred_np = np.maximum(pitch_onset_pred_np, onset_pred_np)
         frame_pred_np = pitch_frame_pred.numpy()
 
