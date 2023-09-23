@@ -92,6 +92,7 @@ class EMDATASET(Dataset):
                 tsvs = [i for i in tsvs if i not in eval_tsvs]
             else:
                 eval_tsvs = []
+            print("len tsvs: ", len(tsvs))
             tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in tsvs]
             eval_tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in eval_tsvs]
             for shft in range(-5, 6):
@@ -100,8 +101,11 @@ class EMDATASET(Dataset):
                 curr_fls_pth = self.path + os.sep + group + '#{}'.format(shft)
                 
                 fls = os.listdir(curr_fls_pth)
+                orig_files = fls
                 # print(f"files names before\n {fls}")
                 fls = [i for i in fls if i.split('#')[0] in tsvs_names] # in case we dont have the corresponding midi
+                missing_fls = [i for i in orig_files if i not in fls]
+                print("missing files: ", missing_fls)
                 fls_names = [i.split('#')[0].split('.flac')[0] for i in fls]
                 tsvs = [i for i in tsvs if i.split('.tsv')[0].split('#')[0] in fls_names]
                 assert len(tsvs) == len(fls)
@@ -272,6 +276,10 @@ class EMDATASET(Dataset):
                     continue
                 midi = np.loadtxt(tsv, delimiter='\t', skiprows=1)
                 unaligned_label = midi_to_frames(midi, self.instruments, conversion_map=self.conversion_map)
+                if len(self.instruments) == 1:
+                    unaligned_label = unaligned_label[:, -N_KEYS:] 
+                print("unaligned labels shape: ", unaligned_label.shape)
+                print("instruments", self.instruments)
                 if self.prev_inst_mapping is not None:
                     # assert self.reference_pitch_transcriber is not None and self.reference_instrument_transcriber is not None
                     zero_labels = torch.zeros((unaligned_label.shape[0], N_KEYS * len(self.prev_inst_mapping)))
@@ -431,7 +439,10 @@ class EMDATASET(Dataset):
                     t_sources_extended = existing_eliminated
 
                 t_src = max(t_sources_extended, key=lambda x: onset_pred_np[x, f]) # t_src is the most likely time in the local neighborhood for this note onset
-                f_pitch = (len(self.instruments) * N_KEYS) + (f % N_KEYS)
+                if len(self.instruments) == 1:
+                    f_pitch = f % N_KEYS
+                else:
+                    f_pitch = (len(self.instruments) * N_KEYS) + (f % N_KEYS)
                 if onset_pred_np[t_src, f_pitch] < NEG: # filter negative according to pitch-only likelihood (can use f instead)
                     continue
                 aligned_onsets[t_src, f] = 1 # set the label
@@ -466,25 +477,28 @@ class EMDATASET(Dataset):
             #     # print(f"zero pred at {N_KEYS * len(self.prev_inst_mapping)}: {-N_KEYS}")
             #     onset_pred_np[:, N_KEYS * len(self.prev_inst_mapping) - 4 * N_KEYS: -N_KEYS] = 0
             
-            print("sum1, ", (onset_pred_np >= POS)[:, :len(self.prev_inst_mapping) * N_KEYS].sum())
+            # print("sum1, ", (onset_pred_np >= POS)[:, :len(self.prev_inst_mapping) * N_KEYS].sum())
             pseudo_onsets = (onset_pred_np >= POS) & (~aligned_onsets)
-            print("sum2 ", np.sum(pseudo_onsets[:, :len(self.prev_inst_mapping) * N_KEYS]))
+            # print("sum2 ", np.sum(pseudo_onsets[:, :len(self.prev_inst_mapping) * N_KEYS]))
             inst_only = len(self.instruments) * N_KEYS
-            if first: # do not use pseudo labels for instruments in first labelling iteration since the model doesn't distinguish yet
-                if self.prev_inst_mapping is None:
-                    pseudo_onsets[:, : inst_only] = 0
-                else:
-                    print("didnt delete last labels")
-                    pseudo_onsets[:, len(self.prev_inst_mapping) * N_KEYS: -N_KEYS] = 0
+            # if first: # do not use pseudo labels for instruments in first labelling iteration since the model doesn't distinguish yet
+            #     if self.prev_inst_mapping is None:
+            #         pseudo_onsets[:, : inst_only] = 0
+            #     else:
+            #         print("didnt delete last labels")
+            #         pseudo_onsets[:, len(self.prev_inst_mapping) * N_KEYS: -N_KEYS] = 0
      
             onset_label = np.maximum(pseudo_onsets, aligned_onsets)
-           
+            if pseudo_onsets.sum() > 0:
+                print("pseudo onsets sum is not 0")
+            else:
+                print("pseudo onsets sum is 0")
             # if self.prev_inst_mapping is not None:
             #     onset_label[:, :len(self.prev_inst_mapping) * N_KEYS] = unaligned_prev
 
             onsets_unknown = (onset_pred_np >= 0.5) & (~onset_label) # for mask
-            if first: # do not use mask for instruments in first labelling iteration since the model doesn't distinguish yet between instruments
-                onsets_unknown[:, : inst_only] = 0
+            # if first: # do not use mask for instruments in first labelling iteration since the model doesn't distinguish yet between instruments
+            #     onsets_unknown[:, : inst_only] = 0
             onset_mask = torch.from_numpy(~onsets_unknown).byte()
             # onset_mask = torch.ones(onset_label.shape).byte()
 
@@ -507,8 +521,8 @@ class EMDATASET(Dataset):
 
             label = np.maximum(2 * frame_label, offset_label)
             label = np.maximum(3 * onset_label, label).astype(np.uint8)
-            print("sum3 ", np.sum(label[:, :len(self.prev_inst_mapping) * N_KEYS] >= 0.5))
-            print("sum first instruments:", np.sum(label[:, :len(self.prev_inst_mapping)*N_KEYS]))
+            # print("sum3 ", np.sum(label[:, :len(self.prev_inst_mapping) * N_KEYS] >= 0.5))
+            # print("sum first instruments:", np.sum(label[:, :len(self.prev_inst_mapping)*N_KEYS]))
             
             if to_save is not None:
                 save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
@@ -543,6 +557,7 @@ class EMDATASET(Dataset):
                 #                 inst_mapping=self.instruments)
             if update:
                 if not BEST_BON or bon_dist < data.get('BON', float('inf')):
+                    print("Updated Labels")
                     data['label'] = torch.from_numpy(label).byte()
                     data['onset_mask'] = onset_mask
                     data['frame_mask'] = frame_mask
