@@ -135,7 +135,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     elif 'use_constant_conversion_map' in config and config['use_constant_conversion_map']:
         conversion_map = constant_conversion_map.conversion_map
         parallel_reference_transcriber = None
-        
+    parallel_reference_transcriber = None 
     if 'reference_transcriber' in config and config['reference_transcriber']:
         reference_transcriber = torch.load(config['reference_transcriber']).to(device)
         set_diff(reference_transcriber.frame_stack, False)
@@ -183,7 +183,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     #####
     if not multi_ckpt:
         model_complexity = 48 if '48' in transcriber_ckpt else 64
-        onset_complexity = 1.5 # if '70' in transcriber_ckpt else 1.0
+        onset_complexity = 1.0 # if '70' in transcriber_ckpt else 1.0
         saved_transcriber = torch.load(transcriber_ckpt).cpu()
         # We create a new transcriber with N_KEYS classes for each instrument:
 
@@ -258,6 +258,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         # NEG = -0.1 # Pseudo-label negative threshold (value < 0 means no pseudo label). 
         if config['psuedo_labels']:
             POS = 0.5
+            NEG = 0.01
         # if epoch == 1 we do not want to make alignment
         if config['update_pts']:
             with torch.no_grad():
@@ -345,12 +346,17 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             onset_recall = (onset_total_tp.sum() / onset_total_p.sum()).item()
             onset_precision = (onset_total_tp.sum() / onset_total_pp.sum()).item()
             if config['modulated_transcriber']:
+                print("Modulated transcriber flag")
                 pitch_onset_recall = (onset_total_tp[batch_size // 2:].sum() / onset_total_p[batch_size // 2:].sum()).item()
                 pitch_onset_precision = (onset_total_tp[batch_size // 2:].sum() / onset_total_pp[batch_size // 2:].sum()).item()
             else:
                 pitch_onset_recall = (onset_total_tp[..., -N_KEYS:].sum() / onset_total_p[..., -N_KEYS:].sum()).item()
                 pitch_onset_precision = (onset_total_tp[..., -N_KEYS:].sum() / onset_total_pp[..., -N_KEYS:].sum()).item()
-
+                # print("onset_total_tp shape", onset_total_tp.shape)
+                # print("check 1, ", torch.equal(onset_total_tp[..., -N_KEYS:], onset_total_tp))
+                # print("check 2, ", torch.equal(onset_total_pp[..., -N_KEYS:], onset_total_pp))
+                # print("check 3, ", torch.equal(onset_total_p[..., -N_KEYS:], onset_total_p))
+                
             # transcription_loss = sum(transcription_losses.values())
             transcription_loss = transcription_losses['loss/onset']
             loss = transcription_loss
@@ -423,8 +429,11 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             with redirect_stdout(f):
                 evaluate_file(midi_transcribed_list, tsv_list, dataset.instruments, conversion_map)
         add_run_to_metadata_dir(logdir, META_DATA_DIR)
-    # if 'train_inference' in config and config['train_inference']:
-    #     pass
+    if 'train_inference' in config and config['train_inference']:
+        train_inference_path = os.path.join(logdir, 'train_inference')
+        os.makedirs(train_inference_path)
+        for f, _ in dataset.file_list:
+            inference_single_flac(parallel_transcriber, f, dataset.instruments, train_inference_path, config['modulated_transcriber'])
         
             
     
@@ -475,6 +484,7 @@ def train_wrapper(yaml_config: dict, logdir):
 
     train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_length, learning_rate, learning_rate_decay_steps,
           clip_gradient_norm, epochs, transcriber_ckpt, multi_ckpt, config)
+    
     
 
 if __name__ == '__main__':
