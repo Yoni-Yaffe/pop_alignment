@@ -80,6 +80,9 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
             if pitch_transcriber is not None:
                 pitch_curr_onset_pred, pitch_curr_offset_pred, _, pitch_curr_frame_pred, *_ = pitch_transcriber(curr_mel)
                 pitch_onsets_preds.append(pitch_curr_onset_pred)
+                print("pitch curr onset pred shape", pitch_curr_onset_pred.shape)
+                print("pitch curr frame pred shape", pitch_curr_frame_pred.shape)
+                
                 pitch_offset_preds.append(pitch_curr_offset_pred)
                 pitch_frame_preds.append(pitch_curr_frame_pred)
                 # pitch_vel_preds.append(pitch_curr_velocity_pred)
@@ -153,6 +156,7 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
         onset_pred_np[:, -88:] = pitch_onset_pred_np[:, -88:]
         # onset_pred_np = np.maximum(pitch_onset_pred_np, onset_pred_np)
         frame_pred_np = pitch_frame_pred.numpy()
+        
 
     # save_path = 'Champions_League.mid'
     save_path = os.path.join(out_dir, os.path.basename(flac_path).replace('.flac', '.mid'))
@@ -163,7 +167,10 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
     if use_max_inst and len(inst_mapping) > 1:
         print("used max inst !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         onset_pred_np = np.maximum(onset_pred_np, max_inst(onset_pred_np))
-        
+    if len(inst_mapping) == 1:
+        print("onset_pred_np_shape_before", onset_pred_np.shape)
+        onset_pred_np = onset_pred_np[:,-88:] 
+        print("onset_pred_np_shape_after", onset_pred_np.shape)
     frames2midi(save_path,
                 onset_pred_np[:, : inst_only], frame_pred_np[:, : inst_only],
                 64. * onset_pred_np[:, : inst_only],
@@ -198,7 +205,7 @@ def generate_labels(transcriber_ckpt, flac_dir, config, pitch_ckpt=None, mask=No
 
     transcriber.zero_grad()
     if pitch_ckpt:
-        pitch_transcriber = torch.load(transcriber_ckpt).to(device)
+        pitch_transcriber = torch.load(pitch_ckpt).to(device)
         set_diff(pitch_transcriber.frame_stack, False)
         set_diff(pitch_transcriber.offset_stack, False)
         set_diff(pitch_transcriber.combined_stack, False)
@@ -209,7 +216,7 @@ def generate_labels(transcriber_ckpt, flac_dir, config, pitch_ckpt=None, mask=No
         pitch_parallel_transcriber = DataParallel(pitch_transcriber)
 
         pitch_transcriber.zero_grad()
-    
+    print("pitch transcriber", pitch_parallel_transcriber)
     print("cuda mem info:")
     print(torch.cuda.mem_get_info())
     torch.cuda.empty_cache()
