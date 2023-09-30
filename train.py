@@ -239,7 +239,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
         
     print("parallel transcriber", parallel_transcriber)
-    optimizer = torch.optim.Adam(list(transcriber.parameters()), lr=learning_rate, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(list(transcriber.parameters()), lr=learning_rate, weight_decay=0)
     transcriber.zero_grad()
     optimizer.zero_grad()
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
@@ -337,6 +337,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                                                                            positive_weight=n_weight,
                                                                            inv_positive_weight=n_weight,
                                                                            )
+            
+            onset_total_tp = 0.
+            onset_total_pp = 0.
+            onset_total_p = 0.
             onset_pred = transcription['onset'].detach() > 0.5
             onset_total_pp += onset_pred
             onset_tp = onset_pred * batch['onset'].detach()
@@ -381,6 +385,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                     f"Pitch Onset Recall  {pitch_onset_recall:.3f}\n"
                 with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
                     fp.write(score_msg)
+            if epochs == 1 and iteration % 1000 == 1:
+                torch.save(transcriber, os.path.join(logdir, 'transcriber_ckpt.pt'.format(iteration)))
 
 
 
@@ -418,7 +424,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         tsv_list = []
         midi_transcribed_list = []
         with torch.no_grad():
-            for flac, tsv in dataset.eval_file_list:
+            file_list = dataset.eval_file_list
+            if 'eval_all' in config and config['eval_all']:
+                file_list = dataset.file_list 
+            for flac, tsv in file_list:
                 if '#0' not in  flac:
                     continue
                 midi_path = inference_single_flac(parallel_transcriber, flac, dataset.instruments, eval_inference_dir, config['modulated_transcriber'])
