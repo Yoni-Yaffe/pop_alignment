@@ -379,17 +379,17 @@ class EMDATASET(Dataset):
                 from onsets_and_frames.allignment import get_model_labels
                 audio_inp = data['audio'].float() / 32768.
                 reference_pitch_onset_pred_np, reference_pitch_frame_pred_np = get_model_labels(reference_transcriber, audio_inp)
-                reference_inst_onset_pred_np, reference_inst_frame_pred_np = get_model_labels(reference_inst_transcriber, audio_inp)
-                print("reference_inst_onset_shape", reference_inst_onset_pred_np.shape)
+                # reference_inst_onset_pred_np, reference_inst_frame_pred_np = get_model_labels(reference_inst_transcriber, audio_inp)
+                # print("reference_inst_onset_shape", reference_inst_onset_pred_np.shape)
                 print("reference_pitch_onset_shape", reference_pitch_onset_pred_np.shape)
                 print("reference pred shape:", reference_pitch_frame_pred_np.shape)
                 onset_pred_np[:, -N_KEYS:] = reference_pitch_onset_pred_np[:, -N_KEYS:]####
                 frame_pred_np[:, -N_KEYS:] = reference_pitch_frame_pred_np[:, -N_KEYS:]
                 
-                reference_inst_onset_pred_np[:, -N_KEYS:] = reference_pitch_onset_pred_np[:, -N_KEYS:]
+                # reference_inst_onset_pred_np[:, -N_KEYS:] = reference_pitch_onset_pred_np[:, -N_KEYS:]
                 # reference_inst_onset_pred_np = max_inst(reference_inst_onset_pred_np)
-                print("inst transcriber onset pred sum:", (reference_inst_onset_pred_np[:, :-N_KEYS] > POS).sum())
-                onset_pred_np[:, :len(self.prev_inst_mapping) * N_KEYS] = reference_inst_onset_pred_np[:, :-N_KEYS]
+                # print("inst transcriber onset pred sum:", (reference_inst_onset_pred_np[:, :-N_KEYS] > POS).sum())
+                # onset_pred_np[:, :len(self.prev_inst_mapping) * N_KEYS] = reference_inst_onset_pred_np[:, :-N_KEYS]
                 
                 
             pred_bag_of_notes = (onset_pred_np[:, -N_KEYS:] >= 0.5).sum(axis=0)
@@ -478,12 +478,17 @@ class EMDATASET(Dataset):
             #     onset_pred_np[:, N_KEYS * len(self.prev_inst_mapping) - 4 * N_KEYS: -N_KEYS] = 0
             
             # print("sum1, ", (onset_pred_np >= POS)[:, :len(self.prev_inst_mapping) * N_KEYS].sum())
+            # aligned_onsets = np.zeros(onset_pred_np.shape, dtype=bool)
+            # aligned_frames = np.zeros(onset_pred_np.shape, dtype=bool)
+            # aligned_offsets = np.zeros(onset_pred_np.shape, dtype=bool)
+            
             pseudo_onsets = (onset_pred_np >= POS) & (~aligned_onsets)
             # print("sum2 ", np.sum(pseudo_onsets[:, :len(self.prev_inst_mapping) * N_KEYS]))
             inst_only = len(self.instruments) * N_KEYS
             # if first: # do not use pseudo labels for instruments in first labelling iteration since the model doesn't distinguish yet
-            #     if self.prev_inst_mapping is None:
-            #         pseudo_onsets[:, : inst_only] = 0
+                # if self.prev_inst_mapping is None:
+                # print("deleted pseudo labels")
+                # pseudo_onsets[:, : -88] = 0
             #     else:
             #         print("didnt delete last labels")
             #         pseudo_onsets[:, len(self.prev_inst_mapping) * N_KEYS: -N_KEYS] = 0
@@ -527,7 +532,7 @@ class EMDATASET(Dataset):
             if to_save is not None:
                 save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
                                          aligned_onsets, aligned_frames,
-                                         onset_pred_np, frame_pred_np, prefix='', group=data['group'])
+                                         onset_pred_np, frame_pred_np, prefix='only_allignment', group=data['group'])
                 save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
                                          label, frame_label,
                                          onset_pred_np, frame_pred_np, prefix='final_labels', group=data['group'])
