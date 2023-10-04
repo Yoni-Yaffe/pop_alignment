@@ -106,6 +106,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     # labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}//NoteEm_labels'
     if config['use_labels_in_dataset_dir']:
         labels_path = f'/vol/scratch/jonathany/datasets/{dataset_name}/NoteEm_labels'
+        if 'use_constant_conversion_map' in config and config['use_constant_conversion_map']:
+            labels_path += '_pitch'
+        else:
+            labels_path += '_inst'
     else:
         labels_path = os.path.join(logdir, 'NoteEm_labels')
     # labels_path = '/disk4/ben/UnalignedSupervision/NoteEm_512_labels'
@@ -155,6 +159,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         parallel_reference_inst_transcriber = DataParallel(reference_inst_transcriber)
     
     instrument_map = None
+    if 'instrument_mapping' in config:
+        instrument_map = config['instrument_mapping']
     print("Conversion map:", conversion_map)
     print("Instrument map:", instrument_map)
     dataset = EMDATASET(audio_path=train_data_path,
@@ -183,7 +189,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     #####
     if not multi_ckpt:
         model_complexity = 48 if '48' in transcriber_ckpt else 64
-        onset_complexity = 1.0 # if '70' in transcriber_ckpt else 1.0
+        onset_complexity = 1.5  if 'model-70' in transcriber_ckpt else 1.0
         saved_transcriber = torch.load(transcriber_ckpt).cpu()
         # We create a new transcriber with N_KEYS classes for each instrument:
 
@@ -229,7 +235,11 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
     # We recommend to train first only onset detection. This will already give good note durations because the combined stack receives
     # information from the onset stack
-    set_diff(transcriber.frame_stack, False)
+    if 'train_only_frame_stack' in config and config['train_only_frame_stack']:
+        print("train_only_frame stack")
+        set_diff(transcriber.onset_stack, False)
+    else:
+        set_diff(transcriber.frame_stack, False)
     set_diff(transcriber.offset_stack, False)
     set_diff(transcriber.combined_stack, False)
     if hasattr(transcriber, 'velocity_stack'):
@@ -338,9 +348,6 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                                                                            inv_positive_weight=n_weight,
                                                                            )
             
-            onset_total_tp = 0.
-            onset_total_pp = 0.
-            onset_total_p = 0.
             onset_pred = transcription['onset'].detach() > 0.5
             onset_total_pp += onset_pred
             onset_tp = onset_pred * batch['onset'].detach()
@@ -362,7 +369,11 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                 # print("check 3, ", torch.equal(onset_total_p[..., -N_KEYS:], onset_total_p))
                 
             # transcription_loss = sum(transcription_losses.values())
-            transcription_loss = transcription_losses['loss/onset']
+            if 'train_only_frame_stack' in config and config['train_only_frame_stack']:
+                transcription_loss = transcription_losses['loss/frame']    
+            else:
+                transcription_loss = transcription_losses['loss/onset']
+            
             loss = transcription_loss
             loss.backward()
 
@@ -385,6 +396,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                     f"Pitch Onset Recall  {pitch_onset_recall:.3f}\n"
                 with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
                     fp.write(score_msg)
+                    
+                onset_total_tp = 0.
+                onset_total_pp = 0.
+                onset_total_p = 0.
             if epochs == 1 and iteration % 1000 == 1:
                 torch.save(transcriber, os.path.join(logdir, 'transcriber_ckpt.pt'.format(iteration)))
 
