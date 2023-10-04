@@ -96,7 +96,7 @@ class EMDATASET(Dataset):
             tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in tsvs]
             eval_tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in eval_tsvs]
             for shft in range(-5, 6):
-                if shft != 0 and not pitch_shift:
+                if shft != 0 and not pitch_shift: # or abs(shft) > 3:
                     continue
                 curr_fls_pth = self.path + os.sep + group + '#{}'.format(shft)
                 
@@ -208,6 +208,10 @@ class EMDATASET(Dataset):
         # as 'big_frame' and 'big_offset'
         result['big_frame'] = result['frame']
         result['frame'], _ = result['frame'].reshape(new_shape).max(axis=-2)
+        
+        if 'frame_mask' not in data:
+            result['frame_mask'] = torch.ones_like(result['frame']).to(self.device).float()
+        
         result['big_offset'] = result['offset']
         result['offset'], _ = result['offset'].reshape(new_shape).max(axis=-2)
         result['group'] = self.data[index][0].split(os.sep)[-2].split('#')[0]
