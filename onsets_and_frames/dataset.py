@@ -193,9 +193,12 @@ class EMDATASET(Dataset):
 
         if 'onset_mask' in data:
             result['onset_mask'] = data['onset_mask'][step_begin:step_end, ...].to(self.device).float()
+        else:
+            result['onset_mask'] = torch.ones_like(result['onset']).to(self.device).float()
         if 'frame_mask' in data:
             result['frame_mask'] = data['frame_mask'][step_begin:step_end, ...].to(self.device).float()
-
+        else:
+            result['frame_mask'] = torch.ones_like(result['frame']).to(self.device).float()
 
         shape = result['frame'].shape
         keys = N_KEYS
@@ -485,10 +488,10 @@ class EMDATASET(Dataset):
             pseudo_onsets = (onset_pred_np >= POS) & (~aligned_onsets)
             # print("sum2 ", np.sum(pseudo_onsets[:, :len(self.prev_inst_mapping) * N_KEYS]))
             inst_only = len(self.instruments) * N_KEYS
-            # if first: # do not use pseudo labels for instruments in first labelling iteration since the model doesn't distinguish yet
+            if first: # do not use pseudo labels for instruments in first labelling iteration since the model doesn't distinguish yet
                 # if self.prev_inst_mapping is None:
                 # print("deleted pseudo labels")
-                # pseudo_onsets[:, : -88] = 0
+                pseudo_onsets[:, : -88] = 0
             #     else:
             #         print("didnt delete last labels")
             #         pseudo_onsets[:, len(self.prev_inst_mapping) * N_KEYS: -N_KEYS] = 0
@@ -501,7 +504,10 @@ class EMDATASET(Dataset):
             # if self.prev_inst_mapping is not None:
             #     onset_label[:, :len(self.prev_inst_mapping) * N_KEYS] = unaligned_prev
 
-            onsets_unknown = (onset_pred_np >= 0.5) & (~onset_label) # for mask
+            onsets_unknown = (onset_pred_np >= 0.5) & (~onset_label) # for mask'
+            onsets_unknown_sum = onsets_unknown.sum()
+            if onsets_unknown_sum != 0:
+                print("onsets_unknown sum is not 0 it is", onsets_unknown_sum)
             # if first: # do not use mask for instruments in first labelling iteration since the model doesn't distinguish yet between instruments
             #     onsets_unknown[:, : inst_only] = 0
             onset_mask = torch.from_numpy(~onsets_unknown).byte()
@@ -532,10 +538,10 @@ class EMDATASET(Dataset):
             if to_save is not None:
                 save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
                                          aligned_onsets, aligned_frames,
-                                         onset_pred_np, frame_pred_np, prefix='only_allignment', group=data['group'])
-                save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
-                                         label, frame_label,
-                                         onset_pred_np, frame_pred_np, prefix='final_labels', group=data['group'])
+                                         onset_pred_np, frame_pred_np, prefix='', group=data['group'])
+                # save_midi_alignments_and_predictions(to_save, data['path'], self.instruments,
+                #                          label, frame_label,
+                #                          onset_pred_np, frame_pred_np, prefix='final_labels', group=data['group'])
                 
                 # time_now = datetime.now().strftime('%y%m%d-%H%M%S')
                 # frames2midi(to_save + os.sep + data['path'].replace('.flac', '').split(os.sep)[-1] + '_alignment_' + time_now + '.mid',
@@ -566,15 +572,19 @@ class EMDATASET(Dataset):
                     data['label'] = torch.from_numpy(label).byte()
                     data['onset_mask'] = onset_mask
                     data['frame_mask'] = frame_mask
+                    print("saved updated pt")
+                    torch.save(data, self.labels_path + os.sep + flac.split(os.sep)[-1]
+                               .replace('.flac', '.pt').replace('.mp3', '.pt'))
+                    
                 if bon_dist < data.get('BON', float('inf')):
                     print('Bag of notes distance improved from {} to {}'.format(data.get('BON', float('inf')), bon_dist))
                     data['BON'] = bon_dist
 
-                    if to_save is not None:
-                        os.makedirs(to_save + '/BEST_BON', exist_ok=True)
-                        save_midi_alignments_and_predictions(to_save + '/BEST_BON', data['path'], self.instruments,
-                                                             aligned_onsets, aligned_frames,
-                                                             onset_pred_np, frame_pred_np, prefix='BEST_BON', group=data['group'])
+                    # if to_save is not None:
+                    #     os.makedirs(to_save + '/BEST_BON', exist_ok=True)
+                    #     save_midi_alignments_and_predictions(to_save + '/BEST_BON', data['path'], self.instruments,
+                    #                                          aligned_onsets, aligned_frames,
+                    #                                          onset_pred_np, frame_pred_np, prefix='BEST_BON', group=data['group'])
 
             velocity_pred = velocity_pred.detach().squeeze().cpu()
             # velocity_pred = torch.from_numpy(new_vels)
