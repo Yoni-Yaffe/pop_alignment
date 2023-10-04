@@ -459,13 +459,13 @@ def save_midi_alignments_and_predictions(save_path, data_path, inst_mapping,
                     onset_label[:, : inst_only], frame_label[:, : inst_only],
                     64. * onset_label[:, : inst_only],
                     inst_mapping=inst_mapping)
-    if group is not None:
-        gorup_path = os.path.join(save_path, 'pred_alignment_max', group)
-        file_name = os.path.basename(data_path).replace('.flac', '_pred_align_max.mid')
-        os.makedirs(gorup_path, exist_ok=True)
-        frames2midi(os.path.join(gorup_path, file_name),
-                    onset_label[:, : inst_only], frame_label[:, : inst_only],
-                    64. * onset_label[:, : inst_only],
-                    inst_mapping=inst_mapping)
+    # if group is not None:
+    #     gorup_path = os.path.join(save_path, 'pred_alignment_max', group)
+    #     file_name = os.path.basename(data_path).replace('.flac', '_pred_align_max.mid')
+    #     os.makedirs(gorup_path, exist_ok=True)
+    #     frames2midi(os.path.join(gorup_path, file_name),
+    #                 onset_label[:, : inst_only], frame_label[:, : inst_only],
+    #                 64. * onset_label[:, : inst_only],
+    #                 inst_mapping=inst_mapping)
         
     
