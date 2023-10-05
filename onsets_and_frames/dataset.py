@@ -11,7 +11,7 @@ from datetime import datetime
 from onsets_and_frames.midi_utils import *
 from onsets_and_frames.utils import *
 import time
-from onsets_and_frames.allignment import labels_of_previous_model
+
 
 
 class EMDATASET(Dataset):
@@ -290,11 +290,6 @@ class EMDATASET(Dataset):
                 if self.prev_inst_mapping is not None:
                     # assert self.reference_pitch_transcriber is not None and self.reference_instrument_transcriber is not None
                     zero_labels = torch.zeros((unaligned_label.shape[0], N_KEYS * len(self.prev_inst_mapping)))
-                    # audio_inp = audio.float() / 32768.
-                    # with torch.no_grad():
-                    #     prev_model_labels = labels_of_previous_model(audio_inp=audio_inp, inst_transcriber=self.reference_instrument_transcriber,
-                    #                                               pitch_transcriber=self.reference_pitch_transcriber)
-                    # labels = torch.from_numpy(prev_model_labels[:, :-N_KEYS]).byte()
                     print("prev model labels shape")
                     unaligned_label = torch.cat((zero_labels, unaligned_label), dim=1)
                     # if zero_labels.shape != labels.shape:
