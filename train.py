@@ -235,9 +235,12 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
     # We recommend to train first only onset detection. This will already give good note durations because the combined stack receives
     # information from the onset stack
+    set_diff(transcriber.onset_stack, True)
     if 'train_only_frame_stack' in config and config['train_only_frame_stack']:
         print("train_only_frame stack")
         set_diff(transcriber.onset_stack, False)
+        set_diff(transcriber.frame_stack, True)
+        
     else:
         set_diff(transcriber.frame_stack, False)
     set_diff(transcriber.offset_stack, False)
@@ -370,7 +373,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                 
             # transcription_loss = sum(transcription_losses.values())
             if 'train_only_frame_stack' in config and config['train_only_frame_stack']:
-                transcription_loss = transcription_losses['loss/frame']    
+                transcription_loss = transcription_losses['loss/frame']
+                print("frame_Stack_loss")
             else:
                 transcription_loss = transcription_losses['loss/onset']
             
