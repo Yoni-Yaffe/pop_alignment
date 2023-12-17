@@ -289,6 +289,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         loader = DataLoader(dataset, batch_size, shuffle=True, drop_last=True)
 
         total_loss = []
+        curr_loss = []
         transcriber.train()
 
         onset_total_tp = 0.
@@ -386,6 +387,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
 
             optimizer.step()
             total_loss.append(loss.item())
+            curr_loss.append(loss.item())
             print(f"avg loss: {sum(total_loss) / len(total_loss):.5f} current loss: {total_loss[-1]:.5f} Onset Precision: {onset_precision:.3f} Onset Recall {onset_recall:.3f} "
                   f"Pitch Onset Precision: {pitch_onset_precision:.3f} Pitch Onset Recall {pitch_onset_recall:.3f}")
             if epochs == 1 and iteration % 20000 == 1:
@@ -395,9 +397,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                        os.path.join(logdir, 'instrument_mapping.pt'.format(iteration)))
             
             if epochs == 1 and iteration % 5000 == 1:
-                score_msg = f"iteration {iteration:06d} loss: {sum(total_loss) / len(total_loss):.5f} Onset Precision:  {onset_precision:.3f} " \
+                score_msg = f"iteration {iteration:06d} loss: {sum(curr_loss) / len(curr_loss):.5f} Onset Precision:  {onset_precision:.3f} " \
                     f"Onset Recall {onset_recall:.3f} Pitch Onset Precision:  {pitch_onset_precision:.3f} " \
                     f"Pitch Onset Recall  {pitch_onset_recall:.3f}\n"
+                curr_loss = []
                 with open(os.path.join(logdir, "score_log.txt"), 'a') as fp:
                     fp.write(score_msg)
                     
@@ -432,8 +435,9 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     torch.save({'instrument_mapping': dataset.instruments},
                        os.path.join(logdir, 'instrument_mapping.pt'))
     
-
-    if config['make_evaluation']:
+    if 'eval_all' in config and config['eval_all']:
+        dataset.eval_file_list = dataset.file_list
+    if config['make_evaluation'] and len(dataset.eval_file_list) > 0:
         transcriber.zero_grad()
         print("cuda mem info:")
         print(torch.cuda.mem_get_info())
@@ -444,8 +448,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         midi_transcribed_list = []
         with torch.no_grad():
             file_list = dataset.eval_file_list
-            if 'eval_all' in config and config['eval_all']:
-                file_list = dataset.file_list 
+            # if 'eval_all' in config and config['eval_all']:
+            #     file_list = dataset.file_list 
             for flac, tsv in file_list:
                 if '#0' not in  flac:
                     continue
@@ -457,6 +461,8 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             with redirect_stdout(f):
                 evaluate_file(midi_transcribed_list, tsv_list, dataset.instruments, conversion_map)
         add_run_to_metadata_dir(logdir, META_DATA_DIR)
+    if len(dataset.eval_file_list) == 0 and config['make_evaluation']:
+        print("no eval files were found")
     if 'train_inference' in config and config['train_inference']:
         train_inference_path = os.path.join(logdir, 'train_inference')
         os.makedirs(train_inference_path)
