@@ -104,6 +104,14 @@ def extract_notes_np_pitch(onsets, frames, velocity,
     return np.array(pitches), np.array(intervals), np.array(velocities)
 
 
+def extract_notes_np_rescaled(onsets, frames, velocity,
+                  onset_threshold=0.5, frame_threshold=0.5):
+    pitches, intervals, velocities, instruments = extract_notes_np(onsets, frames, velocity, onset_threshold, frame_threshold)
+    pitches += MIN_MIDI
+    scaling = HOP_LENGTH / SAMPLE_RATE
+    intervals = (intervals * scaling).reshape(-1, 2)
+    return pitches, intervals, velocities, instruments
+    
 '''
 Convert piano roll to list of notes, pitch and instrument.
 '''
