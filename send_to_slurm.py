@@ -23,5 +23,9 @@ if __name__ == "__main__":
     for param in slurm_config:
         sbatch_command += f' --{param}={slurm_config[param]}'
     sbatch_command += f" {config['command']} --logdir {logdir} --yaml_config {new_yaml_path}"
-    os.system(sbatch_command)
+    local_command = f"python3 main.py --logdir {logdir} --yaml_config {new_yaml_path}"
+    if 'local' in config and config['local']:
+        os.system(local_command)
+    else:
+        os.system(sbatch_command)
     

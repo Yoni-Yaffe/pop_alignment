@@ -3,6 +3,7 @@ from train import train_wrapper
 import yaml
 import os
 import argparse
+import sys
 
 def main():
     parser = argparse.ArgumentParser()
@@ -21,6 +22,11 @@ def main():
     print("yaml path:", yaml_path)
     with open(yaml_path, 'r') as fp:
         yaml_config = yaml.load(fp, Loader=yaml.FullLoader)
+    if 'local' in yaml_config and yaml_config['local']:
+        stdout_file = open(os.path.join(logdir, 'slurmlog.out'), 'w')
+        stderr_file = open(os.path.join(logdir, 'slurmlog.err'), 'w')
+        sys.stdout = stdout_file
+        sys.stderr = stderr_file
     
     if 'run_type' not in yaml_config:
         raise RuntimeError("No run type in yaml file")
