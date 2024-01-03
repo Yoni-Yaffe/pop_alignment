@@ -116,8 +116,12 @@ def extract_notes_np_rescaled(onsets, frames, velocity,
 Convert piano roll to list of notes, pitch and instrument.
 '''
 def extract_notes_np(onsets, frames, velocity,
-                  onset_threshold=0.5, frame_threshold=0.5):
-    onsets = (onsets > onset_threshold).astype(np.uint8)
+                  onset_threshold=0.5, frame_threshold=0.5, onset_threshold_vec=None):
+    if onset_threshold_vec is not None:
+        onsets = (onsets > np.array(onset_threshold_vec)).astype(np.uint8)
+    else:
+        onsets = (onsets > onset_threshold).astype(np.uint8)
+        
     frames = (frames > frame_threshold).astype(np.uint8)
     onset_diff = np.concatenate([onsets[:1, :], onsets[1:, :] - onsets[:-1, :]], axis=0) == 1
 
@@ -243,9 +247,9 @@ def save_midi(path, pitches, intervals, velocities, insts=None):
 
 def frames2midi(save_path, onsets, frames, vels,
                 onset_threshold=0.5, frame_threshold=0.5, scaling=HOP_LENGTH / SAMPLE_RATE,
-                inst_mapping=None):
+                inst_mapping=None, onset_threshold_vec=None):
     p_est, i_est, v_est, inst_est = extract_notes_np(onsets, frames, vels,
-                                        onset_threshold, frame_threshold)
+                                        onset_threshold, frame_threshold, onset_threshold_vec=onset_threshold_vec)
     i_est = (i_est * scaling).reshape(-1, 2)
 
     p_est = np.array([midi_to_hz(MIN_MIDI + midi) for midi in p_est])
