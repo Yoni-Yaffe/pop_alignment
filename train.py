@@ -140,6 +140,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         conversion_map = constant_conversion_map.conversion_map
         parallel_reference_transcriber = None
     parallel_reference_transcriber = None 
+    reference_transcriber = None
     if 'reference_transcriber' in config and config['reference_transcriber']:
         reference_transcriber = torch.load(config['reference_transcriber']).to(device)
         set_diff(reference_transcriber.frame_stack, False)
@@ -177,6 +178,7 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
                             keep_eval_files=config['make_evaluation'],
                             evaluation_list=config['evaluation_list'],
                             only_eval= (iterations == 0)
+                
                             # reference_pitch_transcriber=parallel_reference_transcriber,
                             # reference_instrument_transcriber=parallel_reference_inst_transcriber
                         )
@@ -236,17 +238,22 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     # We recommend to train first only onset detection. This will already give good note durations because the combined stack receives
     # information from the onset stack
     set_diff(transcriber.onset_stack, True)
-    if 'train_only_frame_stack' in config and config['train_only_frame_stack']:
-        print("train_only_frame stack")
-        set_diff(transcriber.onset_stack, False)
-        set_diff(transcriber.frame_stack, True)
-        
-    else:
-        set_diff(transcriber.frame_stack, False)
     set_diff(transcriber.offset_stack, False)
     set_diff(transcriber.combined_stack, False)
     if hasattr(transcriber, 'velocity_stack'):
         set_diff(transcriber.velocity_stack, False)
+    if 'train_only_frame_stack' in config and config['train_only_frame_stack']:
+        print("train_only_frame stack")
+        print("no combined stack")
+        set_diff(transcriber.frame_stack, True)
+        # set_diff(transcriber.combined_stack, True)
+        set_diff(transcriber.onset_stack, False)
+        transcriber.onset_stack.eval()
+        
+        
+    else:
+        set_diff(transcriber.frame_stack, False)
+
 
     parallel_transcriber = DataParallel(transcriber)
 
@@ -274,8 +281,10 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             NEG = 0.01
         # if epoch == 1 we do not want to make alignment
         if config['update_pts']:
+            transcriber.eval()
+            if reference_transcriber is not None:
+                reference_transcriber.eval()
             with torch.no_grad():
-                
                 dataset.update_pts(parallel_transcriber,
                                 POS=POS,
                                 NEG=NEG,
@@ -291,7 +300,11 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
         total_loss = []
         curr_loss = []
         transcriber.train()
-
+        
+        if config.get('train_only_frame_stack', False):
+            print("onset stack in eval mode")
+            transcriber.onset_stack.eval()
+            
         onset_total_tp = 0.
         onset_total_pp = 0.
         onset_total_p = 0.
@@ -435,17 +448,29 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
     torch.save({'instrument_mapping': dataset.instruments},
                        os.path.join(logdir, 'instrument_mapping.pt'))
     
+    transcriber.eval()
+    parallel_transcriber.eval()
     if 'eval_all' in config and config['eval_all']:
         dataset.eval_file_list = dataset.file_list
     if config['make_evaluation'] and len(dataset.eval_file_list) > 0:
         transcriber.zero_grad()
+        
         print("cuda mem info:")
         print(torch.cuda.mem_get_info())
         torch.cuda.empty_cache()
+        if 'tolerance' in config and config['tolerance'] is not None:
+            tolerance = config['tolerance']
+        else:
+            tolerance = 0.05
+        print(f"onset tolerance = {tolerance}")
         eval_inference_dir = os.path.join(logdir, 'eval_inference')
         os.makedirs(eval_inference_dir, exist_ok=True)
         tsv_list = []
         midi_transcribed_list = []
+        onset_threshold_vec = config.get('onset_threshold_vec')
+        save_onsets_and_frames = config.get('save_onsets_and_frames', False)
+        transcriber.eval()
+        parallel_transcriber.eval()
         with torch.no_grad():
             file_list = dataset.eval_file_list
             # if 'eval_all' in config and config['eval_all']:
@@ -453,19 +478,20 @@ def train(logdir, device, iterations, checkpoint_interval, batch_size, sequence_
             for flac, tsv in file_list:
                 if '#0' not in  flac:
                     continue
-                midi_path = inference_single_flac(parallel_transcriber, flac, dataset.instruments, eval_inference_dir, config['modulated_transcriber'])
+                midi_path = inference_single_flac(parallel_transcriber, flac, dataset.instruments, eval_inference_dir, config['modulated_transcriber'], save_onsets_and_frames=save_onsets_and_frames, onset_threshold_vec=onset_threshold_vec)
                 midi_transcribed_list.append(midi_path)
                 tsv_list.append(tsv)
         output_path_evaluation = os.path.join(logdir, "evaluation_results.txt")
         with open(output_path_evaluation, 'w') as f:
             with redirect_stdout(f):
-                evaluate_file(midi_transcribed_list, tsv_list, dataset.instruments, conversion_map)
+                evaluate_file(midi_transcribed_list, tsv_list, dataset.instruments, conversion_map, tolerance=tolerance)
         add_run_to_metadata_dir(logdir, META_DATA_DIR)
     if len(dataset.eval_file_list) == 0 and config['make_evaluation']:
         print("no eval files were found")
     if 'train_inference' in config and config['train_inference']:
         train_inference_path = os.path.join(logdir, 'train_inference')
         os.makedirs(train_inference_path)
+        transcriber.eval()  # double check
         for f, _ in dataset.file_list:
             inference_single_flac(parallel_transcriber, f, dataset.instruments, train_inference_path, config['modulated_transcriber'])
         
