@@ -43,6 +43,7 @@ class EMDATASET(Dataset):
         self.reference_pitch_transcriber = reference_pitch_transcriber
         self.reference_instrument_transcriber = reference_instrument_transcriber
         print("file_list", self.file_list)
+        print("\n\n")
         print("eval_file list", self.eval_file_list)
         self.prev_inst_mapping = prev_inst_mapping
         if instrument_map is None:
@@ -87,12 +88,14 @@ class EMDATASET(Dataset):
                 eval_tsvs = tsvs[:n_eval]
                 tsvs = tsvs[n_eval:]
             elif keep_eval_files and evaluation_list is not None:
+                
                 eval_tsvs_names = [i.split('#')[0].split('.flac')[0].split('.tsv')[0] for i in evaluation_list]
                 eval_tsvs = [i for i in tsvs if i.split('#')[0].split('.tsv')[0] in eval_tsvs_names]
                 tsvs = [i for i in tsvs if i not in eval_tsvs]
             else:
                 eval_tsvs = []
             print("len tsvs: ", len(tsvs))
+            
             tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in tsvs]
             eval_tsvs_names = [t.split('.tsv')[0].split('#')[0] for t in eval_tsvs]
             for shft in range(-5, 6):
@@ -112,20 +115,21 @@ class EMDATASET(Dataset):
                 # print(f"files names after\n {fls}")
                 fls = sorted(fls)
                 
+                if shft == 0:
+                    eval_fls = os.listdir(curr_fls_pth)
+                    # print(f"files names\n {eval_fls}")
+                    eval_fls = [i for i in eval_fls if i.split('#')[0] in eval_tsvs_names] # in case we dont have the corresponding midi
+                    eval_fls_names = [i.split('#')[0] for i in eval_fls]
+                    eval_tsvs = [i for i in eval_tsvs if i.split('.tsv')[0].split('#')[0] in eval_fls_names]
+                    assert len(eval_fls_names) == len(eval_tsvs_names)
+                    # print(f"files names\n {eval_fls}")
+                    eval_fls = sorted(eval_fls)
+                    for f, t in zip(eval_fls, eval_tsvs):
+                        self.eval_file_list.append((curr_fls_pth + os.sep + f, tsvs_path + os.sep + group + os.sep + t))
                 
-                eval_fls = os.listdir(curr_fls_pth)
-                # print(f"files names\n {eval_fls}")
-                eval_fls = [i for i in eval_fls if i.split('#')[0] in eval_tsvs_names] # in case we dont have the corresponding midi
-                eval_fls_names = [i.split('#')[0] for i in eval_fls]
-                eval_tsvs = [i for i in eval_tsvs if i.split('.tsv')[0].split('#')[0] in eval_fls_names]
-                assert len(eval_fls_names) == len(eval_tsvs_names)
-                # print(f"files names\n {eval_fls}")
-                eval_fls = sorted(eval_fls)
                 for f, t in zip(fls, tsvs):
                     res.append((curr_fls_pth + os.sep + f, tsvs_path + os.sep + group + os.sep + t))
-                
-                for f, t in zip(eval_fls, eval_tsvs):
-                    self.eval_file_list.append((curr_fls_pth + os.sep + f, tsvs_path + os.sep + group + os.sep + t))
+                    
         for flac, tsv in res:
             if os.path.basename(flac).split('#')[0].split('.flac')[0] != os.path.basename(tsv).split('#')[0].split('.tsv')[0]:
                 print("found mismatch in the files: ")
@@ -369,7 +373,7 @@ class EMDATASET(Dataset):
             frame_pred = frame_pred.detach().squeeze().cpu()
 
             peaks = get_peaks(onset_pred, 3) # we only want local peaks, in a 7-frame neighborhood, 3 to each side.
-            onset_pred[~peaks] = 0
+            # onset_pred[~peaks] = 0
 
             unaligned_onsets = (data['unaligned_label'] == 3).float().numpy()
             unaligned_frames = (data['unaligned_label'] >= 2).float().numpy()
