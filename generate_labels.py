@@ -2,7 +2,7 @@ from onsets_and_frames import *
 import soundfile
 from torch.nn import DataParallel
 from onsets_and_frames.transcriber import load_weights
-from onsets_and_frames.midi_utils import frames2midi
+from onsets_and_frames.midi_utils import frames2midi, extract_notes_np, extract_notes_np_rescaled
 import sys
 import yaml
 import os
@@ -30,7 +30,7 @@ def load_audio(flac):
     return audio
 
 
-def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulated_transcriber=False, use_max_inst=True, pitch_transcriber=None, mask=None):
+def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulated_transcriber=False, use_max_inst=True, pitch_transcriber=None, mask=None, save_onsets_and_frames=False, onset_threshold_vec=None):
     if isinstance(transcriber, DataParallel):
         transcriber_module = transcriber.module
     else:
@@ -126,17 +126,10 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
     onset_pred = onset_pred.detach().squeeze().cpu()
     frame_pred = frame_pred.detach().squeeze().cpu()
     
-    # peaks = get_peaks(onset_pred, 3)  # we only want local peaks, in a 7-frame neighborhood, 3 to each side.
-    # onset_pred[~peaks] = 0
 
     onset_pred_np = onset_pred.numpy()
-    # onset_pred_np[:, :-N_KEYS * 5] = 0
     frame_pred_np = frame_pred.numpy()
-    print("onset_pred_np shape", onset_pred_np.shape)
-    print("frame_pred_np shape", frame_pred_np.shape)
-    print("$"*100)
-    print("inst mapping", inst_mapping)
-    print("$"*100)
+
     if mask is not None:
         mask_with_pitch = mask + [1]
         mask_list = [np.full((onset_pred_np.shape[0], N_KEYS), i) for i in mask_with_pitch]
@@ -150,12 +143,9 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
         pitch_onset_pred = pitch_onset_pred.detach().squeeze().cpu()
         pitch_frame_pred = pitch_frame_pred.detach().squeeze().cpu()
         pitch_onset_pred_np = pitch_onset_pred.numpy()
-        print("pitch_onset_pred_np shape", pitch_onset_pred_np.shape)
-        # print("pitch_frame_pred_np shape", pitch_frame_pred_np.shape)
-        # onset_pred_np[:, -88:] = np.maximum(pitch_onset_pred_np[:, -88:], onset_pred_np[:, -88:])
         onset_pred_np[:, -88:] = pitch_onset_pred_np[:, -88:]
-        # onset_pred_np = np.maximum(pitch_onset_pred_np, onset_pred_np)
         frame_pred_np = pitch_frame_pred.numpy()
+        
         
 
     # save_path = 'Champions_League.mid'
@@ -174,15 +164,19 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
     frames2midi(save_path,
                 onset_pred_np[:, : inst_only], frame_pred_np[:, : inst_only],
                 64. * onset_pred_np[:, : inst_only],
-                inst_mapping=inst_mapping)
-    # frames2midi(save_path,
-    #         onset_pred_np[:, -88:], frame_pred_np[:, -88:],
-    #         64. * onset_pred_np[:, : -88],
-    #         inst_mapping=inst_mapping)
+                inst_mapping=inst_mapping, onset_threshold_vec=onset_threshold_vec)
+
+    if save_onsets_and_frames:
+        onset_save_path = os.path.join(out_dir, os.path.basename(flac_path).replace('.flac', '_onset_pred.npy'))
+        frame_save_path = os.path.join(out_dir, os.path.basename(flac_path).replace('.flac', '_frame_pred.npy'))
+        np.save(onset_save_path, onset_pred_np)
+        np.save(frame_save_path, frame_pred_np)
+    
+    
     print(f"saved midi to {save_path}")
     return save_path
 
-def generate_labels(transcriber_ckpt, flac_dir, config, pitch_ckpt=None, mask=None):
+def generate_labels(transcriber_ckpt, flac_dir, config, pitch_ckpt=None, mask=None, onset_threshold_vec=None, save_onsets_and_frames=False):
     # inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 43, 45, 6, 60]
     # inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 45, 6, 60]
     pitch_transcriber = None
@@ -216,6 +210,10 @@ def generate_labels(transcriber_ckpt, flac_dir, config, pitch_ckpt=None, mask=No
         pitch_parallel_transcriber = DataParallel(pitch_transcriber)
 
         pitch_transcriber.zero_grad()
+        pitch_ckpt.eval()
+        pitch_parallel_transcriber.eval()
+    transcriber.eval()
+    parallel_transcriber.eval()
     print("pitch transcriber", pitch_parallel_transcriber)
     print("cuda mem info:")
     print(torch.cuda.mem_get_info())
@@ -233,7 +231,9 @@ def generate_labels(transcriber_ckpt, flac_dir, config, pitch_ckpt=None, mask=No
                                   out_dir=results_dir,
                                   modulated_transcriber=config['modulated_transcriber'],
                                   pitch_transcriber=pitch_parallel_transcriber,
-                                  mask=mask)
+                                  mask=mask,
+                                  onset_threshold_vec=onset_threshold_vec,
+                                  save_onsets_and_frames=save_onsets_and_frames)
 
 
 def generate_labels_wrapper(yaml_config: dict):
@@ -250,9 +250,11 @@ def generate_labels_wrapper(yaml_config: dict):
     else:
         mask = None
     flac_dir = config['audio_files_dir']
+    onset_threshold_vec = config.get('onset_threshold_vec')
+    save_onsets_and_frames = config.get('save_onsets_and_frames', False)
     # flac_path = 'Champions_League#0.flac'
     flac_path = 'Westworld#0.flac'
-    generate_labels(ckpt, flac_dir, config, pitch_ckpt=pitch_ckpt, mask=mask)
+    generate_labels(ckpt, flac_dir, config, pitch_ckpt=pitch_ckpt, mask=mask, onset_threshold_vec=onset_threshold_vec, save_onsets_and_frames=save_onsets_and_frames)
 
 
 if __name__ == '__main__':
