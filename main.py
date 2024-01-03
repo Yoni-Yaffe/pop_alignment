@@ -4,6 +4,7 @@ import yaml
 import os
 import argparse
 import sys
+from evaluate_multi_inst import fine_tune_thresholds_with_files
 
 def main():
     parser = argparse.ArgumentParser()
@@ -35,6 +36,8 @@ def main():
         train_wrapper(yaml_config, logdir)
     elif yaml_config['run_type'] == 'inference':
         generate_labels_wrapper(yaml_config)
+    elif yaml_config['run_type'] == 'threshold':
+        fine_tune_thresholds_with_files(yaml_config, log_dir=logdir)
 
 if __name__ == "__main__":
     main()
