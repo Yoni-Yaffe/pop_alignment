@@ -210,7 +210,7 @@ def generate_labels(transcriber_ckpt, flac_dir, config, pitch_ckpt=None, mask=No
         pitch_parallel_transcriber = DataParallel(pitch_transcriber)
 
         pitch_transcriber.zero_grad()
-        pitch_ckpt.eval()
+        pitch_transcriber.eval()
         pitch_parallel_transcriber.eval()
     transcriber.eval()
     parallel_transcriber.eval()
