@@ -99,7 +99,9 @@ def get_inactive_instruments(target_onsets, T):
     return res.reshape((T, instruments * keys)), active_instruments
 
 
-def max_inst(probs):
+def max_inst(probs, threshold_vec=None):
+    if threshold_vec is None:
+        threshold_vec = 0.5
     if probs.shape[-1] == N_KEYS or probs.shape[-1] == N_KEYS * 2:
         # there is only pitch
         return probs
@@ -107,7 +109,7 @@ def max_inst(probs):
     instruments = probs.shape[1] // keys
     time = len(probs)
     probs = probs.reshape((time, instruments, keys))
-    notes = probs.max(axis=1) >= 0.5
+    notes = probs.max(axis=1) >= threshold_vec
     max_instruments = np.argmax(probs[:, : -1, :], axis=1)
     res = np.zeros(probs.shape, dtype=np.uint8)
     for t, p in zip(*(notes.nonzero())):

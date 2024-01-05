@@ -156,7 +156,9 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
     print("onset pred shape", onset_pred_np.shape)
     if use_max_inst and len(inst_mapping) > 1:
         print("used max inst !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        onset_pred_np = np.maximum(onset_pred_np, max_inst(onset_pred_np))
+        onset_pred_np = max_inst(onset_pred_np, threshold_vec=onset_threshold_vec)
+        onset_threshold_vec = None
+        # onset_pred_np = np.maximum(onset_pred_np, max_inst(onset_pred_np))
     if len(inst_mapping) == 1:
         print("onset_pred_np_shape_before", onset_pred_np.shape)
         onset_pred_np = onset_pred_np[:,-88:] 
@@ -179,6 +181,10 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
 def generate_labels(transcriber_ckpt, flac_dir, config, pitch_ckpt=None, mask=None, onset_threshold_vec=None, save_onsets_and_frames=False):
     # inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 43, 45, 6, 60]
     # inst_mapping = [0, 68, 70, 71, 40, 73, 41, 42, 45, 6, 60]
+    if onset_threshold_vec is not None:
+        print("using threshold vec - ")
+        print(onset_threshold_vec)
+        
     pitch_transcriber = None
     pitch_parallel_transcriber = None
     inst_mapping = config['inst_mapping']
