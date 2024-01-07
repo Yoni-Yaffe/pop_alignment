@@ -158,7 +158,7 @@ def inference_single_flac(transcriber, flac_path, inst_mapping, out_dir, modulat
         print("used max inst !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         onset_pred_np = max_inst(onset_pred_np, threshold_vec=onset_threshold_vec)
         onset_threshold_vec = None
-        # onset_pred_np = np.maximum(onset_pred_np, max_inst(onset_pred_np))
+        onset_pred_np = np.maximum(onset_pred_np, max_inst(onset_pred_np))
     if len(inst_mapping) == 1:
         print("onset_pred_np_shape_before", onset_pred_np.shape)
         onset_pred_np = onset_pred_np[:,-88:] 
